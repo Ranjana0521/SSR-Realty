@@ -1,0 +1,34 @@
+[
+  {
+    "id": "lakeview-residences", "title": "Lakeview Residences", "city": "Bengaluru", "locality": "Whitefield", "intent": "buy", "type": "apartment", "status": "Ready to move", "config": "3 BHK", "areaSqft": 1820, "price": 18500000, "priceLabel": "₹1.85 Cr", "priceNote": "Indicative sale price", "image": "assets/hero.webp", "featured": true,
+    "summary": "An airy apartment concept with generous living spaces and everyday conveniences close at hand.", "highlights": ["East facing", "Balcony", "Covered parking"]
+  },
+  {
+    "id": "verdant-courtyard", "title": "Verdant Courtyard", "city": "Bengaluru", "locality": "Sarjapur Road", "intent": "buy", "type": "villa", "status": "New launch", "config": "4 BHK", "areaSqft": 3400, "price": 32000000, "priceLabel": "₹3.20 Cr", "priceNote": "Indicative sale price", "image": "assets/villa.webp", "featured": true,
+    "summary": "A garden-facing villa concept designed around space, privacy and quiet outdoor moments.", "highlights": ["Private garden", "North facing", "Family lounge"]
+  },
+  {
+    "id": "the-grove", "title": "The Grove", "city": "Bengaluru", "locality": "HSR Layout", "intent": "rent", "type": "apartment", "status": "For rent", "config": "2 BHK", "areaSqft": 1250, "price": 42000, "priceLabel": "₹42,000 / mo", "priceNote": "Indicative monthly rent", "image": "assets/apartment.webp", "featured": true,
+    "summary": "A bright, furnished apartment concept with a relaxed layout for city living.", "highlights": ["Furnished", "Balcony", "East facing"]
+  },
+  {
+    "id": "palm-courts", "title": "Palm Courts Resale", "city": "Bengaluru", "locality": "Varthur", "intent": "buy", "type": "apartment", "status": "Ready to move", "config": "2 BHK", "areaSqft": 1180, "price": 12500000, "priceLabel": "₹1.25 Cr", "priceNote": "Indicative sale price", "image": "assets/apartment.webp", "featured": false,
+    "summary": "A practical home concept with open living areas and a calm residential setting.", "highlights": ["West facing", "Parking", "Open kitchen"]
+  },
+  {
+    "id": "lakeside-heights", "title": "Lakeside Heights", "city": "Bengaluru", "locality": "Whitefield", "intent": "rent", "type": "apartment", "status": "For rent", "config": "3 BHK", "areaSqft": 1650, "price": 55000, "priceLabel": "₹55,000 / mo", "priceNote": "Indicative monthly rent", "image": "assets/hero.webp", "featured": false,
+    "summary": "A spacious rental apartment concept with room to work, unwind and host.", "highlights": ["Semi-furnished", "North-east facing", "Balcony"]
+  },
+  {
+    "id": "indiranagar-high-street", "title": "Indiranagar High-Street", "city": "Bengaluru", "locality": "Indiranagar", "intent": "commercial", "type": "retail", "status": "Available", "config": "Retail", "areaSqft": 850, "price": 180000, "priceLabel": "₹1.80 L / mo", "priceNote": "Indicative monthly rent", "image": "assets/office.webp", "featured": false,
+    "summary": "An illustrative street-facing retail space for a brand seeking a prominent address.", "highlights": ["Main road", "Warm shell", "Street frontage"]
+  },
+  {
+    "id": "orr-office-floor", "title": "Outer Ring Road Office", "city": "Bengaluru", "locality": "Bellandur", "intent": "commercial", "type": "office", "status": "Available", "config": "Office", "areaSqft": 4200, "price": 273000, "priceLabel": "₹2.73 L / mo", "priceNote": "Indicative monthly rent", "image": "assets/office.webp", "featured": false,
+    "summary": "A flexible office floor concept with scope for teams to shape their own workspace.", "highlights": ["Bare shell", "4,200 sq.ft", "Commercial address"]
+  },
+  {
+    "id": "hosur-showroom", "title": "Hosur Road Showroom", "city": "Bengaluru", "locality": "Hosur Road", "intent": "commercial", "type": "showroom", "status": "Available", "config": "Showroom", "areaSqft": 2000, "price": 240000, "priceLabel": "₹2.40 L / mo", "priceNote": "Indicative monthly rent", "image": "assets/office.webp", "featured": false,
+    "summary": "An illustrative showroom opportunity planned for visibility and easy customer access.", "highlights": ["Main road", "Warm shell", "Display frontage"]
+  }
+]
