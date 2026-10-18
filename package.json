@@ -9,5 +9,8 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test server.test.mjs"
+  },
+  "devDependencies": {
+    "jimp": "^1.6.1"
   }
 }

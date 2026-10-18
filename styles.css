@@ -1503,7 +1503,7 @@ h3 {
 }
 
 .launcher-sticker-bot {
-    width: 82px;
+    width: 90px;
     height: auto;
     display: block;
     filter: drop-shadow(0 10px 18px rgba(16, 44, 40, .42)) drop-shadow(0 2px 6px rgba(0, 0, 0, .2));
@@ -1649,7 +1649,7 @@ h3 {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: url('assets/bot-avatar.jpg') center/cover no-repeat;
+    background: url('assets/bot-face.png') center/cover no-repeat;
     border: 1px solid var(--gold)
 }
 
@@ -2146,7 +2146,7 @@ h3 {
     }
 
     .launcher-sticker-bot {
-        width: 68px;
+        width: 74px;
     }
 
     .chat-panel {
