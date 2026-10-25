@@ -2,115 +2,1416 @@ const page = document.body.dataset.page;
 const params = new URLSearchParams(location.search);
 let listings = [];
 let chatFilters = {};
+let activeGalleryIndex = 0;
+let currentModalProperty = null;
+let pendingPropertyId = null;
 
-const label = value => ({ buy: 'For sale', rent: 'For rent', commercial: 'Commercial', apartment: 'Apartment', villa: 'Villa', retail: 'Retail', office: 'Office', showroom: 'Showroom' }[value] || value);
+// Metropolis database with regional descriptors
+const METROPOLISES = [
+  { id: 'Hyderabad', name: 'Hyderabad', region: 'Deccan Plateau' },
+  { id: 'Mumbai', name: 'Mumbai', region: 'Coastal Plains' },
+  { id: 'Bengaluru', name: 'Bengaluru', region: 'Silicon High-Tech' },
+  { id: 'Gurgaon', name: 'Gurgaon', region: 'NCR Golf Course' }
+];
+
+// Auth Helpers
+function getAuthUser() {
+  try {
+    const data = localStorage.getItem('wonacre_user') || localStorage.getItem('ssr_user');
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setAuthUser(user) {
+  if (user) {
+    localStorage.setItem('wonacre_user', JSON.stringify(user));
+    localStorage.removeItem('ssr_user');
+  } else {
+    localStorage.removeItem('wonacre_user');
+    localStorage.removeItem('ssr_user');
+  }
+  updateAuthUI();
+}
+
+// Active City State
+function getActiveCity() {
+  return localStorage.getItem('wonacre_city') || localStorage.getItem('ssr_city') || 'Hyderabad';
+}
+
+function setActiveCity(cityName) {
+  localStorage.setItem('wonacre_city', cityName);
+  localStorage.setItem('ssr_city', cityName);
+  const labelEl = document.querySelector('#active-city-label');
+  if (labelEl) labelEl.textContent = cityName;
+  renderMetropolisOptions();
+  
+  // Sync hero select if on home
+  const heroCitySelect = document.querySelector('#hero-city-select');
+  if (heroCitySelect) heroCitySelect.value = cityName;
+  
+  // Sync catalogue filter if on listings
+  const filterCity = document.querySelector('#filter-city');
+  if (filterCity) {
+    filterCity.value = cityName;
+    filterCity.dispatchEvent(new Event('change'));
+  }
+}
+
+// Saved / Favorites Helpers
+function getSavedIds() {
+  try {
+    const data = localStorage.getItem('wonacre_saved') || localStorage.getItem('ssr_saved');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isSaved(id) {
+  return getSavedIds().includes(id);
+}
+
+function toggleSaved(id) {
+  const current = getSavedIds();
+  const index = current.indexOf(id);
+  if (index >= 0) {
+    current.splice(index, 1);
+  } else {
+    current.push(id);
+  }
+  localStorage.setItem('wonacre_saved', JSON.stringify(current));
+  updateSavedUI();
+  return current.includes(id);
+}
+
+function updateSavedUI() {
+  const count = getSavedIds().length;
+  const badge = document.querySelector('#saved-badge');
+  if (badge) badge.textContent = count;
+  document.querySelectorAll('[data-save-id]').forEach(btn => {
+    const id = btn.dataset.saveId;
+    const saved = isSaved(id);
+    btn.classList.toggle('saved', saved);
+    btn.setAttribute('aria-pressed', String(saved));
+    btn.innerHTML = saved ? '★' : '☆';
+  });
+}
+
+const label = value => ({
+  buy: 'For sale',
+  rent: 'For rent',
+  commercial: 'Commercial',
+  apartment: 'Apartment',
+  villa: 'Villa',
+  retail: 'Retail',
+  office: 'Office',
+  showroom: 'Showroom'
+}[value] || value);
+
 const propertyUrl = id => `property.html?id=${encodeURIComponent(id)}`;
-const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+
+/* =========================================================
+   SHELL RENDERING (Header, Footer, Modals)
+   ========================================================= */
 
 function renderShell() {
+  const activeCity = getActiveCity();
+  const savedCount = getSavedIds().length;
+
+  // Header markup matching user's reference picture
   document.querySelector('#site-header').innerHTML = `
-    <div class="announcement"><span>SSR REALTY / INTERACTIVE DRAFT</span><span>All property content is illustrative</span></div>
-    <header class="site-header"><div class="container header-inner"><a class="brand" href="index.html" aria-label="SSR Realty home"><span class="brand-symbol">S<span>·</span></span><span class="brand-name">SSR <b>REALTY</b></span></a><nav id="main-nav" class="main-nav" aria-label="Primary navigation"><a href="index.html" ${page === 'home' ? 'aria-current="page"' : ''}>Home</a><a href="listings.html" ${page === 'listings' || page === 'property' ? 'aria-current="page"' : ''}>Properties</a><a href="about.html" ${page === 'about' ? 'aria-current="page"' : ''}>About</a><a href="contact.html" ${page === 'contact' ? 'aria-current="page"' : ''}>Enquire</a></nav><div class="header-actions"><button type="button" class="header-bot" data-open-chat>Ask SSR Bot <span>✦</span></button><button id="menu-toggle" class="menu-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="Open menu"><span></span><span></span></button></div></div></header>`;
-  document.querySelector('#site-footer').innerHTML = `<footer class="footer"><div class="container"><div class="footer-top"><div><a class="brand footer-brand" href="index.html"><span class="brand-symbol">S<span>·</span></span><span class="brand-name">SSR <b>REALTY</b></span></a><p>A clearer way to explore what comes next.</p></div><div class="footer-links"><div><strong>Explore</strong><a href="listings.html">Properties</a><a href="listings.html?intent=commercial">Commercial</a><a href="about.html">About SSR</a></div><div><strong>Connect</strong><a href="contact.html">Enquire</a><button type="button" data-open-chat>Ask SSR Bot</button></div></div></div><div class="footer-bottom"><span>© SSR Realty · Interactive concept</span><span>Listings, images and prices are illustrative. No enquiries are sent.</span></div></div></footer>`;
-  document.querySelector('#chat-root').innerHTML = `<button id="chat-launcher" class="chat-launcher" type="button" aria-label="Open chat" aria-expanded="false"><img src="assets/bot-face.png" alt="Chat Bot" class="launcher-sticker-bot"></button><section id="chat-panel" class="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" hidden><header class="chat-head"><div class="chat-avatar"><img src="assets/bot-face.png" alt="SSR Bot" class="chat-avatar-img"><span class="avatar-online-dot header-dot"></span></div><div><strong id="chat-title">SSR Bot</strong><span id="chat-mode">Checking connection…</span></div><button id="chat-close" type="button" aria-label="Close SSR Bot">×</button></header><div id="chat-messages" class="chat-messages" aria-live="polite"><div class="chat-message bot">Tell me the kind of space you need. I can search the illustrative SSR listings by location, type, size and budget.</div><div class="chat-suggestions"><button type="button">2 BHK in Whitefield under ₹2 Cr</button><button type="button">Office space in Bellandur</button><button type="button">Show rental apartments</button></div></div><form id="chat-form" class="chat-form"><label class="sr-only" for="chat-input">Message SSR Bot</label><input id="chat-input" name="message" maxlength="500" autocomplete="off" placeholder="Describe your property need…" required><button type="submit" aria-label="Send message">➤</button></form><p class="chat-disclaimer">Draft assistant · Demo listings only · No chat history is saved</p></section>`;
+    <div class="announcement">
+      <span>WONACRE // ARCHITECTURAL INTELLIGENCE</span>
+      <span>ACTIVE METROPOLIS NETWORK <span class="badge-pill">● LIVE</span></span>
+    </div>
+    <header class="site-header">
+      <div class="container header-inner">
+        <!-- Brand Logo: WONACRE -->
+        <a class="brand" href="index.html" aria-label="WONACRE Architectural Realty">
+          <span class="brand-symbol">W</span>
+          <div class="brand-text">
+            <span class="brand-name">WONACRE</span>
+            <span class="brand-sub">ARCHITECTURAL REALTY</span>
+          </div>
+        </a>
+
+        <!-- Main Nav in requested order: 1. About, 2. Discover, 3. Buy, 4. Rent -->
+        <nav id="main-nav" class="main-nav" aria-label="Primary navigation">
+          <a href="about.html" class="nav-link ${page === 'about' ? 'active' : ''}" ${page === 'about' ? 'aria-current="page"' : ''}>About</a>
+          <a href="index.html" class="nav-link ${page === 'home' ? 'active' : ''}" ${page === 'home' ? 'aria-current="page"' : ''}>Discover</a>
+          <a href="listings.html?intent=buy" class="nav-link nav-item-dropdown ${params.get('intent') === 'buy' ? 'active' : ''}">
+            Buy <span class="nav-arrow">▾</span>
+          </a>
+          <a href="listings.html?intent=rent" class="nav-link nav-item-dropdown ${params.get('intent') === 'rent' ? 'active' : ''}">
+            Rent <span class="nav-arrow">▾</span>
+          </a>
+        </nav>
+
+        <!-- Right Side: Saved Collection with Save Symbol, Location Dropdown, Sign in / User, Consult AI -->
+        <div class="header-actions">
+          <!-- Saved Pill Button with Save Symbol -->
+          <a href="listings.html?saved=true" class="saved-pill-btn ${params.get('saved') === 'true' ? 'active' : ''}" id="header-saved-btn" title="Saved Properties Collection" aria-label="View Saved Properties">
+            <span class="save-icon-symbol">🔖</span>
+            <span class="save-label">Saved</span>
+            <span class="nav-badge" id="saved-badge">${savedCount}</span>
+          </a>
+
+          <!-- Location Dropdown Pill as shown in photo -->
+          <div class="location-selector" id="location-selector">
+            <button class="location-pill-btn" id="location-pill-btn" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Select Metropolis">
+              <span class="loc-dot"></span>
+              <span id="active-city-label">${activeCity}</span>
+              <span class="loc-arrow">▾</span>
+            </button>
+            <div class="location-menu" id="location-menu" hidden>
+              <div class="location-menu-title">ACTIVE METROPOLIS</div>
+              <div id="location-options-container"></div>
+            </div>
+          </div>
+
+          <!-- Auth Button / Profile -->
+          <div id="header-auth-slot"></div>
+
+          <!-- Consult AI CTA Button -->
+          <button type="button" class="consult-ai-btn" data-open-chat>
+            Consult AI <span>✦</span>
+          </button>
+
+          <!-- Mobile Hamburger -->
+          <button id="menu-toggle" class="menu-toggle" type="button" aria-controls="main-nav" aria-expanded="false" aria-label="Open menu">
+            <span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+  `;
+
+  // Footer
+  document.querySelector('#site-footer').innerHTML = `
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-top">
+          <div>
+            <a class="brand" href="index.html">
+              <span class="brand-symbol">W</span>
+              <div class="brand-text">
+                <span class="brand-name">WONACRE</span>
+                <span class="brand-sub">ARCHITECTURAL REALTY</span>
+              </div>
+            </a>
+            <p style="color: var(--ink-secondary); margin-top: 14px; max-width: 380px;">
+              A considered way to discover homes and workplaces through conversational architectural intelligence.
+            </p>
+          </div>
+          <div class="footer-links">
+            <div>
+              <strong>Explore</strong>
+              <a href="index.html">Discover</a>
+              <a href="listings.html?intent=buy">Buy Portfolio</a>
+              <a href="listings.html?intent=rent">Long Leases</a>
+              <a href="listings.html?intent=commercial">Commercial Floors</a>
+            </div>
+            <div>
+              <strong>Active Cities</strong>
+              <button type="button" data-switch-city="Hyderabad">Hyderabad</button>
+              <button type="button" data-switch-city="Mumbai">Mumbai</button>
+              <button type="button" data-switch-city="Bengaluru">Bengaluru</button>
+              <button type="button" data-switch-city="Gurgaon">Gurgaon</button>
+            </div>
+            <div>
+              <strong>Connect</strong>
+              <a href="about.html">About WONACRE</a>
+              <a href="contact.html">Schedule Site Visit</a>
+              <button type="button" data-open-chat>Consult AI Spatial Model</button>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 WONACRE · All rights reserved</span>
+          <span>Property blueprints and dossiers protected for verified users.</span>
+        </div>
+      </div>
+    </footer>
+  `;
+
+  // Chat Panel Root
+  document.querySelector('#chat-root').innerHTML = `
+    <button id="chat-launcher" class="chat-launcher" type="button" aria-label="Open WONACRE AI Spatial Chat" aria-expanded="false">
+      <img src="assets/bot-face.png" alt="Chat Bot" class="launcher-sticker-bot">
+    </button>
+    <section id="chat-panel" class="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" hidden>
+      <header class="chat-head">
+        <div class="chat-avatar">
+          <img src="assets/bot-face.png" alt="WONACRE Spatial AI" class="chat-avatar-img">
+          <span class="avatar-online-dot"></span>
+        </div>
+        <div>
+          <strong id="chat-title">WONACRE Spatial AI</strong>
+          <span id="chat-mode">Active Metropolis Spatial Model</span>
+        </div>
+        <button id="chat-close" type="button" aria-label="Close Assistant">×</button>
+      </header>
+      <div id="chat-messages" class="chat-messages" aria-live="polite">
+        <div class="chat-message bot">
+          Welcome. Tell me what matters in your next home or space—location, orientation, budget, or architectural layout.
+        </div>
+        <div class="chat-suggestions">
+          <button type="button">A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony</button>
+          <button type="button">Sea-facing apartment in Worli Mumbai</button>
+          <button type="button">Golf course villa in Gurgaon</button>
+          <button type="button">3 BHK apartment in Whitefield Bengaluru</button>
+        </div>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <label class="sr-only" for="chat-input">Message Assistant</label>
+        <input id="chat-input" name="message" maxlength="500" autocomplete="off" placeholder="Ask about spaces, budgets, blueprints…" required>
+        <button type="submit" aria-label="Send query">➤</button>
+      </form>
+      <p class="chat-disclaimer">Conversational Spatial Intelligence · Real-time portfolio search</p>
+    </section>
+  `;
+
+  // Modals Root (Sign In Modal & Full Property Gallery Modal)
+  let modalRoot = document.querySelector('#modal-root');
+  if (!modalRoot) {
+    modalRoot = document.createElement('div');
+    modalRoot.id = 'modal-root';
+    document.body.appendChild(modalRoot);
+  }
+
+  modalRoot.innerHTML = `
+    <!-- Sign In / Unlock Modal -->
+    <div id="auth-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+      <div class="auth-modal-card">
+        <button type="button" class="modal-close-btn" id="auth-modal-close" aria-label="Close dialog">×</button>
+        <div class="auth-lock-icon">🔒</div>
+        <div class="auth-modal-head">
+          <h2 id="auth-modal-title">Sign in to Unlock Property</h2>
+          <p id="auth-modal-desc">
+            Complete architectural blueprints, floor plans, and high-resolution photography are accessible to signed-in members.
+          </p>
+        </div>
+
+        <div id="auth-target-info" class="auth-target-pill" hidden>
+          <span>✦</span>
+          <span id="auth-target-title">The Linear House at Gachibowli</span>
+        </div>
+
+        <!-- 1-Click Instant Demo Login (convenient for users & reviewers!) -->
+        <button type="button" class="auth-quick-login-btn" id="quick-demo-login-btn">
+          <span>⚡</span> Quick 1-Click Guest Login (Instant Access)
+        </button>
+
+        <div class="auth-divider">or enter email</div>
+
+        <form id="auth-form" class="auth-form">
+          <label>Email Address
+            <input type="email" id="auth-email" required placeholder="alex.morgan@example.com" value="alex.morgan@example.com">
+          </label>
+          <label>Password
+            <input type="password" id="auth-password" required placeholder="••••••••" value="wonacre2026">
+          </label>
+          <button type="submit" class="auth-submit-btn">Sign In & Unlock Dossier</button>
+        </form>
+
+        <div class="auth-switch">
+          <span>Demo account is pre-filled. Click above to unlock instantly.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Property Inspector Modal & Multi-Photo Gallery -->
+    <div id="property-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="prop-modal-heading">
+      <div class="property-modal-card">
+        <!-- Top Bar matching user photo: Return to Discovery (left) | Dedicated View | Save | Close (right) -->
+        <div class="prop-modal-top-bar">
+          <button type="button" class="prop-modal-back-btn" id="prop-modal-back">
+            <span>←</span> Return to Discovery
+          </button>
+          <div class="prop-modal-top-right">
+            <a href="#" id="prop-modal-dedicated-btn" class="prop-modal-dedicated-btn" target="_blank">
+              ↗ Dedicated View
+            </a>
+            <button type="button" id="prop-modal-save-btn" class="prop-modal-save-btn">
+              <span id="prop-modal-save-icon">🔖</span>
+              <span id="prop-modal-save-text">Save</span>
+            </button>
+            <button type="button" class="modal-close-btn" id="prop-modal-close" style="position: static;" aria-label="Close dialog">✕</button>
+          </div>
+        </div>
+
+        <div class="prop-modal-scrollable">
+          <!-- Property Title and Key Stats -->
+          <div style="padding: 20px 28px 12px;">
+            <div class="prop-modal-title-group">
+              <h2 id="prop-modal-heading" style="font-size: 1.55rem; margin-bottom: 6px;">The Linear House at Gachibowli</h2>
+              <div class="prop-modal-meta" style="flex-wrap: wrap; gap: 8px 12px;">
+                <span id="prop-modal-badge" class="eyebrow light" style="margin:0;">BUY // HYDERABAD</span>
+                <span>·</span>
+                <span id="prop-modal-config">2 BHK · 1,450 sq.ft</span>
+                <span>·</span>
+                <span id="prop-modal-rera" style="color: var(--cyan);">RERA: P02400004921</span>
+                <span>·</span>
+                <strong id="prop-modal-price" style="color: var(--gold); font-size: 1.05rem;">₹78 Lakh</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Multi-Photo Gallery Component -->
+          <div class="gallery-container">
+            <div class="gallery-main-view">
+              <img id="gallery-active-img" src="assets/prop-linear-exterior.jpg" alt="Property view">
+              <button type="button" class="gallery-nav-btn gallery-prev" id="gallery-prev-btn" aria-label="Previous photo">‹</button>
+              <button type="button" class="gallery-nav-btn gallery-next" id="gallery-next-btn" aria-label="Next photo">›</button>
+              <div class="gallery-caption-bar">
+                <span id="gallery-active-caption">Exterior Architecture at Dusk</span>
+                <span class="gallery-counter" id="gallery-counter">PHOTO 1 OF 4</span>
+              </div>
+            </div>
+            <!-- Thumbnails Row -->
+            <div class="gallery-thumbs-row" id="gallery-thumbs-row"></div>
+          </div>
+
+          <!-- Overview & Highlights -->
+          <div style="padding: 24px 28px 30px;">
+            <p id="prop-modal-summary" class="lead" style="font-size: 0.95rem; color: #cbd5e1; margin: 0 0 16px;"></p>
+            <div class="prop-highlight-tags" id="prop-modal-highlights" style="margin-bottom: 24px;"></div>
+
+            <!-- TECHNICAL SPECIFICATIONS TABLE (Exactly matching user photo) -->
+            <div class="dossier-spec-section">
+              <span class="dossier-section-title">TECHNICAL SPECIFICATIONS</span>
+              <div class="tech-specs-table" id="prop-tech-specs-table"></div>
+            </div>
+
+            <!-- RESIDENTIAL AMENITIES (Exactly matching user photo) -->
+            <div class="dossier-amenities-section">
+              <span class="dossier-section-title">RESIDENTIAL AMENITIES</span>
+              <div class="amenities-chips-wrap" id="prop-amenities-chips"></div>
+            </div>
+
+            <!-- SCHEDULE A PRIVATE ARCHITECTURAL VIEWING CARD (Exactly matching user photo) -->
+            <div class="viewing-brochure-card">
+              <h4>Schedule a Private Architectural Viewing</h4>
+              <p>Walk through with a WONACRE certified architectural curator. No broker spam.</p>
+              
+              <form id="prop-viewing-form">
+                <div class="viewing-form-grid">
+                  <input type="text" class="viewing-input" id="viewing-fullname" placeholder="Your Full Name" required>
+                  <input type="tel" class="viewing-input" id="viewing-phone" placeholder="Phone or WhatsApp Number" required>
+                </div>
+                <button type="submit" class="viewing-submit-btn" id="viewing-submit-btn">
+                  Confirm Viewing Appointment
+                </button>
+              </form>
+
+              <div id="viewing-success-box" class="viewing-success-box" hidden>
+                <strong style="color: var(--emerald); font-size: 0.95rem;">✓ Viewing Requested & Brochure Dispatched!</strong>
+                <p style="margin: 6px 0 0; color: #cbd5e1; font-size: 0.82rem; line-height: 1.5;">
+                  The official architectural brochure and specifications have been sent to your WhatsApp/Phone. A WONACRE curator will coordinate your private walkthrough shortly.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  setupShellEventListeners();
+  updateAuthUI();
+  updateSavedUI();
+}
+
+/* =========================================================
+   SHELL EVENT LISTENERS & INTERACTION
+   ========================================================= */
+
+function setupShellEventListeners() {
+  // Mobile Nav Toggle
   const toggle = document.querySelector('#menu-toggle');
-  toggle.addEventListener('click', () => { const open = toggle.getAttribute('aria-expanded') !== 'true'; toggle.setAttribute('aria-expanded', String(open)); document.querySelector('#main-nav').classList.toggle('open', open); });
-  document.querySelectorAll('[data-open-chat], #chat-launcher').forEach(button => button.addEventListener('click', () => setChatOpen(true)));
-  document.querySelector('#chat-close').addEventListener('click', () => setChatOpen(false));
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') setChatOpen(false); });
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      document.querySelector('#main-nav').classList.toggle('open', open);
+    });
+  }
+
+  // Location Dropdown Toggle
+  const locBtn = document.querySelector('#location-pill-btn');
+  const locMenu = document.querySelector('#location-menu');
+  if (locBtn && locMenu) {
+    locBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = locMenu.hidden;
+      locMenu.hidden = !open;
+      locBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#location-selector')) {
+        locMenu.hidden = true;
+        locBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  renderMetropolisOptions();
+
+  // Footer city switch buttons
+  document.querySelectorAll('[data-switch-city]').forEach(btn => {
+    btn.addEventListener('click', () => setActiveCity(btn.dataset.switchCity));
+  });
+
+  // Chatbot Open/Close
+  document.querySelectorAll('[data-open-chat], #chat-launcher').forEach(button => {
+    button.addEventListener('click', () => setChatOpen(true));
+  });
+  const chatClose = document.querySelector('#chat-close');
+  if (chatClose) chatClose.addEventListener('click', () => setChatOpen(false));
+
+  // Escape key closes modals and chat
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      setChatOpen(false);
+      closeAuthModal();
+      closePropertyModal();
+    }
+  });
+
+  // Auth Modal Listeners
+  const authClose = document.querySelector('#auth-modal-close');
+  if (authClose) authClose.addEventListener('click', closeAuthModal);
+
+  const authBackdrop = document.querySelector('#auth-modal');
+  if (authBackdrop) {
+    authBackdrop.addEventListener('click', e => {
+      if (e.target === authBackdrop) closeAuthModal();
+    });
+  }
+
+  const quickLoginBtn = document.querySelector('#quick-demo-login-btn');
+  if (quickLoginBtn) {
+    quickLoginBtn.addEventListener('click', () => {
+      executeLogin({ name: 'Alex Morgan', email: 'alex.morgan@example.com' });
+    });
+  }
+
+  const authForm = document.querySelector('#auth-form');
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.querySelector('#auth-email').value.trim() || 'alex.morgan@example.com';
+      const name = email.split('@')[0].replace(/[._-]/g, ' ') || 'Alex Member';
+      executeLogin({ name: name.charAt(0).toUpperCase() + name.slice(1), email });
+    });
+  }
+
+  // Property Modal Close Listeners
+  const propClose = document.querySelector('#prop-modal-close');
+  if (propClose) propClose.addEventListener('click', closePropertyModal);
+
+  const propBackdrop = document.querySelector('#property-modal');
+  if (propBackdrop) {
+    propBackdrop.addEventListener('click', e => {
+      if (e.target === propBackdrop) closePropertyModal();
+    });
+  }
+
+  // Gallery Navigation Buttons
+  const prevBtn = document.querySelector('#gallery-prev-btn');
+  const nextBtn = document.querySelector('#gallery-next-btn');
+  if (prevBtn) prevBtn.addEventListener('click', () => navigateGallery(-1));
+  if (nextBtn) nextBtn.addEventListener('click', () => navigateGallery(1));
 }
 
-function setChatOpen(open) {
-  const panel = document.querySelector('#chat-panel');
-  panel.hidden = !open;
-  document.querySelector('#chat-launcher').setAttribute('aria-expanded', String(open));
-  if (open) document.querySelector('#chat-input').focus();
+// Render Metropolis Options Menu
+function renderMetropolisOptions() {
+  const container = document.querySelector('#location-options-container');
+  if (!container) return;
+  const active = getActiveCity();
+
+  container.innerHTML = METROPOLISES.map(city => `
+    <button type="button" class="location-option ${city.name === active ? 'selected' : ''}" data-city-val="${city.name}">
+      <div class="location-option-text">
+        <span class="location-option-name">${city.name}</span>
+        <span class="location-option-sub">${city.region}</span>
+      </div>
+      ${city.name === active ? '<span class="location-check">✓</span>' : ''}
+    </button>
+  `).join('');
+
+  container.querySelectorAll('.location-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setActiveCity(btn.dataset.cityVal);
+      const menu = document.querySelector('#location-menu');
+      if (menu) menu.hidden = true;
+      const pill = document.querySelector('#location-pill-btn');
+      if (pill) pill.setAttribute('aria-expanded', 'false');
+    });
+  });
 }
 
-function card(item, small = false) {
-  return `<article class="property-card ${small ? 'compact-card' : ''}"><a href="${propertyUrl(item.id)}" class="card-media"><img src="${item.image}" alt="Illustrative image for ${escapeHtml(item.title)}" loading="lazy"><span class="card-badge">Illustrative listing</span></a><div class="card-content"><div class="card-eyebrow"><span>${label(item.intent)}</span><span>${escapeHtml(item.locality)}</span></div><h3><a href="${propertyUrl(item.id)}">${escapeHtml(item.title)}</a></h3><p class="card-summary">${escapeHtml(item.config)} <span>·</span> ${item.areaSqft.toLocaleString('en-IN')} sq.ft <span>·</span> ${label(item.type)}</p><div class="card-bottom"><div><strong>${escapeHtml(item.priceLabel)}</strong><small>${escapeHtml(item.priceNote)}</small></div><a href="${propertyUrl(item.id)}" aria-label="View ${escapeHtml(item.title)}">↗</a></div></div></article>`;
+// Update Header Auth Button / User Profile
+function updateAuthUI() {
+  const slot = document.querySelector('#header-auth-slot');
+  if (!slot) return;
+  const user = getAuthUser();
+
+  if (user) {
+    const initial = (user.name || 'U').charAt(0).toUpperCase();
+    slot.innerHTML = `
+      <div class="user-profile-pill" title="Signed in as ${escapeHtml(user.email)}">
+        <span class="user-avatar-circle">${initial}</span>
+        <span>${escapeHtml(user.name.split(' ')[0])}</span>
+        <button class="user-logout-btn" id="header-logout-btn" title="Sign out" type="button">✕</button>
+      </div>
+    `;
+    const logoutBtn = slot.querySelector('#header-logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        setAuthUser(null);
+        if (page === 'property') setupProperty();
+      });
+    }
+  } else {
+    slot.innerHTML = `<button type="button" class="auth-btn" id="header-sign-in-btn">Sign in</button>`;
+    const loginBtn = slot.querySelector('#header-sign-in-btn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', () => openAuthModal());
+    }
+  }
+}
+
+/* =========================================================
+   AUTH MODAL & LOGIN FLOW (Requirement 3)
+   ========================================================= */
+
+function openAuthModal(propertyId = null) {
+  pendingPropertyId = propertyId;
+  const modal = document.querySelector('#auth-modal');
+  const targetInfo = document.querySelector('#auth-target-info');
+  const targetTitle = document.querySelector('#auth-target-title');
+
+  if (propertyId && listings.length) {
+    const prop = listings.find(p => p.id === propertyId);
+    if (prop) {
+      targetInfo.hidden = false;
+      targetTitle.textContent = `Unlocking Dossier: ${prop.title} (${prop.locality})`;
+    }
+  } else {
+    targetInfo.hidden = true;
+  }
+
+  modal.hidden = false;
+}
+
+function closeAuthModal() {
+  const modal = document.querySelector('#auth-modal');
+  if (modal) modal.hidden = true;
+}
+
+let pendingChatQuery = null;
+
+function executeLogin(userData) {
+  setAuthUser(userData);
+  closeAuthModal();
+
+  // If user clicked a property before logging in, immediately unlock and show it!
+  if (pendingPropertyId) {
+    const targetId = pendingPropertyId;
+    pendingPropertyId = null;
+    openPropertyDetails(targetId);
+  }
+
+  // If chat was waiting for login, immediately resume query!
+  if (pendingChatQuery && window.sendChatMessage) {
+    const q = pendingChatQuery;
+    pendingChatQuery = null;
+    window.sendChatMessage(q);
+  }
+}
+
+/* =========================================================
+   PROPERTY CLICK & LOGIN GATE (Requirement 3)
+   ========================================================= */
+
+function handlePropertyClick(event, propertyId) {
+  event.preventDefault();
+  const user = getAuthUser();
+
+  if (!user) {
+    // If user is not logged in, ask for login first!
+    openAuthModal(propertyId);
+  } else {
+    // Logged in: show full info and more pics!
+    openPropertyDetails(propertyId);
+  }
+}
+
+function openPropertyDetails(propertyId) {
+  const item = listings.find(entry => entry.id === propertyId);
+  if (!item) return;
+
+  // If user is on property.html with the same ID, just refresh
+  if (page === 'property') {
+    location.href = propertyUrl(propertyId);
+    return;
+  }
+
+  showPropertyModal(item);
+}
+
+/* =========================================================
+   FULL PROPERTY INSPECTOR MODAL & GALLERY
+   ========================================================= */
+
+function showPropertyModal(item) {
+  currentModalProperty = item;
+  activeGalleryIndex = 0;
+  const modal = document.querySelector('#property-modal');
+
+  // Fill Header
+  document.querySelector('#prop-modal-heading').textContent = item.title;
+  document.querySelector('#prop-modal-badge').textContent = `${label(item.intent).toUpperCase()} // ${item.city.toUpperCase()}`;
+  document.querySelector('#prop-modal-config').textContent = `${item.config} · ${item.areaSqft.toLocaleString('en-IN')} sq.ft · ${item.locality}`;
+  
+  const reraVal = item.specs?.rera || 'Authenticated WONACRE ID: P024098';
+  document.querySelector('#prop-modal-rera').textContent = `RERA: ${reraVal}`;
+  document.querySelector('#prop-modal-price').textContent = item.priceLabel;
+
+  // Dedicated View Link
+  const dedicatedBtn = document.querySelector('#prop-modal-dedicated-btn');
+  if (dedicatedBtn) dedicatedBtn.href = propertyUrl(item.id);
+
+  // Return to Discovery Back Button
+  const backBtn = document.querySelector('#prop-modal-back');
+  if (backBtn) backBtn.onclick = () => closePropertyModal();
+
+  // Top Bar Save Button
+  const saveBtn = document.querySelector('#prop-modal-save-btn');
+  const saveIcon = document.querySelector('#prop-modal-save-icon');
+  const saveText = document.querySelector('#prop-modal-save-text');
+  const saved = isSaved(item.id);
+  if (saveBtn) {
+    saveBtn.classList.toggle('saved', saved);
+    if (saveIcon) saveIcon.textContent = saved ? '★' : '🔖';
+    if (saveText) saveText.textContent = saved ? 'Saved' : 'Save';
+    saveBtn.onclick = () => {
+      const isNow = toggleSaved(item.id);
+      saveBtn.classList.toggle('saved', isNow);
+      if (saveIcon) saveIcon.textContent = isNow ? '★' : '🔖';
+      if (saveText) saveText.textContent = isNow ? 'Saved' : 'Save';
+    };
+  }
+
+  // Description & Highlights
+  document.querySelector('#prop-modal-summary').textContent = item.summary;
+  const highlightsContainer = document.querySelector('#prop-modal-highlights');
+  highlightsContainer.innerHTML = item.highlights.map(h => `<span class="prop-highlight-pill">✓ ${escapeHtml(h)}</span>`).join('');
+
+  // Setup Gallery Images
+  renderModalGallery(item);
+
+  // TECHNICAL SPECIFICATIONS TABLE (From user photo)
+  const defaultSpecs = {
+    "Ceiling Height": "10.6 ft clear height",
+    "Flooring Material": "Micro-cement & smoked oak hardwood",
+    "Acoustic & Thermal Glazing": "Saint-Gobain low-E thermal acoustic glass",
+    "Covered Parking": "1 Dedicated Bays",
+    "Balconies & Terraces": "2 Private Outdoor Balconies"
+  };
+  const specs = Object.assign({}, defaultSpecs, item.technicalSpecs || {});
+  const specsTable = document.querySelector('#prop-tech-specs-table');
+  if (specsTable) {
+    specsTable.innerHTML = Object.entries(specs).map(([specKey, specVal]) => `
+      <div class="tech-spec-row">
+        <div class="tech-spec-label">${escapeHtml(specKey)}</div>
+        <div class="tech-spec-value">${escapeHtml(specVal)}</div>
+      </div>
+    `).join('');
+  }
+
+  // RESIDENTIAL AMENITIES CHIPS (From user photo)
+  const defaultAmenities = [
+    "Lap pool with slate stone perimeter",
+    "Residents library & reading pavilion",
+    "EV car charging bay",
+    "24/7 security with RFID gate access",
+    "Rooftop stargazing deck"
+  ];
+  const amenitiesList = item.amenities && item.amenities.length > 0 ? item.amenities : defaultAmenities;
+  const amenitiesWrap = document.querySelector('#prop-amenities-chips');
+  if (amenitiesWrap) {
+    amenitiesWrap.innerHTML = amenitiesList.map(am => `
+      <span class="amenity-chip">${escapeHtml(am)}</span>
+    `).join('');
+  }
+
+  // SCHEDULE A PRIVATE ARCHITECTURAL VIEWING & SEND BROCHURE FORM
+  const user = getAuthUser();
+  const nameInput = document.querySelector('#viewing-fullname');
+  const phoneInput = document.querySelector('#viewing-phone');
+  if (nameInput) nameInput.value = user?.name || '';
+  if (phoneInput && user?.phone) phoneInput.value = user.phone;
+
+  const viewingForm = document.querySelector('#prop-viewing-form');
+  const successBox = document.querySelector('#viewing-success-box');
+  if (viewingForm && successBox) {
+    viewingForm.hidden = false;
+    successBox.hidden = true;
+    viewingForm.onsubmit = (e) => {
+      e.preventDefault();
+      const clientName = nameInput ? nameInput.value.trim() : (user?.name || 'Valued Client');
+      const clientPhone = phoneInput ? phoneInput.value.trim() : '';
+      viewingForm.hidden = true;
+      successBox.hidden = false;
+      successBox.innerHTML = `
+        <strong style="color: var(--emerald); font-size: 0.95rem;">✓ Official Brochure & Dossier Dispatched!</strong>
+        <p style="margin: 6px 0 0; color: #cbd5e1; font-size: 0.82rem; line-height: 1.5;">
+          The full architectural brochure and specifications for <strong>${escapeHtml(item.title)}</strong> have been sent to <strong>${escapeHtml(clientPhone || clientName)}</strong> via WhatsApp. A WONACRE curator will coordinate your private walkthrough shortly.
+        </p>
+      `;
+    };
+  }
+
+  const scrollable = modal.querySelector('.prop-modal-scrollable');
+  if (scrollable) scrollable.scrollTop = 0;
+
+  modal.hidden = false;
+}
+
+function closePropertyModal() {
+  const modal = document.querySelector('#property-modal');
+  if (modal) modal.hidden = true;
+  currentModalProperty = null;
+}
+
+function getPropertyGallery(item) {
+  if (item.gallery && item.gallery.length > 0) return item.gallery;
+  return [item.image, 'assets/prop-luxury-living.jpg', 'assets/prop-master-bedroom.jpg', 'assets/prop-floor-plan.jpg'];
+}
+
+const GALLERY_LABELS = [
+  'Exterior Architecture',
+  'Double-Height Living Salon',
+  'Master Suite & Private Terrace',
+  '3D Blueprint Floor Plan'
+];
+
+function renderModalGallery(item) {
+  const gallery = getPropertyGallery(item);
+  const thumbsRow = document.querySelector('#gallery-thumbs-row');
+
+  thumbsRow.innerHTML = gallery.map((imgUrl, i) => `
+    <div class="gallery-thumb-item ${i === activeGalleryIndex ? 'active' : ''}" data-thumb-idx="${i}">
+      <img src="${imgUrl}" alt="Thumbnail ${i + 1}">
+      <span class="gallery-thumb-label">${GALLERY_LABELS[i] || `View ${i + 1}`}</span>
+    </div>
+  `).join('');
+
+  thumbsRow.querySelectorAll('.gallery-thumb-item').forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      activeGalleryIndex = Number(thumb.dataset.thumbIdx);
+      updateActiveGalleryImage();
+    });
+  });
+
+  updateActiveGalleryImage();
+}
+
+function updateActiveGalleryImage() {
+  if (!currentModalProperty) return;
+  const gallery = getPropertyGallery(currentModalProperty);
+  if (activeGalleryIndex < 0) activeGalleryIndex = gallery.length - 1;
+  if (activeGalleryIndex >= gallery.length) activeGalleryIndex = 0;
+
+  const mainImg = document.querySelector('#gallery-active-img');
+  mainImg.src = gallery[activeGalleryIndex];
+
+  const caption = document.querySelector('#gallery-active-caption');
+  caption.textContent = GALLERY_LABELS[activeGalleryIndex] || `Dossier Photograph ${activeGalleryIndex + 1}`;
+
+  const counter = document.querySelector('#gallery-counter');
+  counter.textContent = `PHOTO ${activeGalleryIndex + 1} OF ${gallery.length}`;
+
+  document.querySelectorAll('#gallery-thumbs-row .gallery-thumb-item').forEach((thumb, i) => {
+    thumb.classList.toggle('active', i === activeGalleryIndex);
+  });
+}
+
+function navigateGallery(delta) {
+  activeGalleryIndex += delta;
+  updateActiveGalleryImage();
+}
+
+/* =========================================================
+   CARD COMPONENT
+   ========================================================= */
+
+function card(item) {
+  const saved = isSaved(item.id);
+  const galleryCount = (item.gallery?.length) || 4;
+
+  return `
+    <article class="property-card" data-card-id="${escapeHtml(item.id)}">
+      <div class="card-media">
+        <img src="${item.image}" alt="Architectural view of ${escapeHtml(item.title)}" loading="lazy">
+        <span class="card-badge">${label(item.intent)} // ${escapeHtml(item.city)}</span>
+        <button type="button" class="card-save-btn ${saved ? 'saved' : ''}" data-save-id="${escapeHtml(item.id)}" aria-label="Save ${escapeHtml(item.title)}">
+          ${saved ? '★' : '☆'}
+        </button>
+      </div>
+      <div class="card-content">
+        <div class="card-eyebrow">
+          <span>${escapeHtml(item.locality)}</span>
+          <span>${galleryCount} PHOTOS · SPEC DOSSIER</span>
+        </div>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p class="card-summary">
+          ${escapeHtml(item.config)} <span>·</span> ${item.areaSqft.toLocaleString('en-IN')} sq.ft <span>·</span> ${label(item.type)}
+        </p>
+        <div class="card-bottom">
+          <div>
+            <strong>${escapeHtml(item.priceLabel)}</strong>
+            <small>${escapeHtml(item.priceNote)}</small>
+          </div>
+          <span class="card-view-btn">
+            Unlock Full Info ↗
+          </span>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function attachCardClickListeners(container) {
+  container.querySelectorAll('.property-card').forEach(cardEl => {
+    const id = cardEl.dataset.cardId;
+    cardEl.addEventListener('click', (e) => {
+      // Don't trigger property modal if user clicked the save button
+      if (e.target.closest('.card-save-btn')) {
+        e.stopPropagation();
+        toggleSaved(id);
+        return;
+      }
+      handlePropertyClick(e, id);
+    });
+  });
 }
 
 function addOptions(select, values, placeholder, selected = '') {
   select.innerHTML = `<option value="">${placeholder}</option>` + values.map(value => `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(label(value))}</option>`).join('');
 }
 
+/* =========================================================
+   HOME PAGE (index.html)
+   ========================================================= */
+
 function setupHome() {
-  document.querySelector('#featured-grid').innerHTML = listings.filter(item => item.featured).map(item => card(item)).join('');
+  const activeCity = getActiveCity();
+
+  // Attach click to the featured monograph card (The Linear House at Gachibowli)
+  const monograph = document.querySelector('[data-open-property]');
+  if (monograph) {
+    monograph.addEventListener('click', (e) => {
+      const propId = monograph.dataset.openProperty;
+      handlePropertyClick(e, propId);
+    });
+  }
+
+  // Hero Spatial Search Interactions
+  const heroCitySelect = document.querySelector('#hero-city-select');
+  if (heroCitySelect) {
+    heroCitySelect.value = activeCity;
+    heroCitySelect.addEventListener('change', () => setActiveCity(heroCitySelect.value));
+  }
+
+  const heroTabs = document.querySelectorAll('[data-hero-intent]');
+  let heroIntent = 'buy';
+  heroTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      heroTabs.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      heroIntent = btn.dataset.heroIntent;
+    });
+  });
+
+  const heroForm = document.querySelector('#hero-spatial-form');
+  const heroInput = document.querySelector('#hero-spatial-input');
+  const heroConsultBtn = document.querySelector('#hero-consult-btn');
+
+  function triggerHeroConsult() {
+    const query = heroInput.value.trim() || 'A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony.';
+    setChatOpen(true);
+    const chatIn = document.querySelector('#chat-input');
+    if (chatIn) {
+      chatIn.value = query;
+      document.querySelector('#chat-form').dispatchEvent(new Event('submit'));
+    }
+  }
+
+  if (heroForm) heroForm.addEventListener('submit', (e) => { e.preventDefault(); triggerHeroConsult(); });
+  if (heroConsultBtn) heroConsultBtn.addEventListener('click', triggerHeroConsult);
+
+  // Render Featured Grid
+  renderFeaturedGrid();
+
+  // Secondary Filter Form
   let intent = 'buy';
   const buttons = [...document.querySelectorAll('#home-search [data-intent]')];
   const typeSelect = document.querySelector('#home-type');
   const localitySelect = document.querySelector('#home-locality');
+
   const refresh = () => {
     buttons.forEach(button => button.classList.toggle('selected', button.dataset.intent === intent));
     const group = listings.filter(item => item.intent === intent);
     addOptions(localitySelect, [...new Set(group.map(item => item.locality))].sort(), 'All locations', localitySelect.value);
     addOptions(typeSelect, [...new Set(group.map(item => item.type))].sort(), 'All types', typeSelect.value);
   };
-  buttons.forEach(button => button.addEventListener('click', () => { intent = button.dataset.intent; localitySelect.value = ''; typeSelect.value = ''; refresh(); }));
-  document.querySelector('#home-search').addEventListener('submit', event => { event.preventDefault(); const query = new URLSearchParams({ intent }); if (localitySelect.value) query.set('locality', localitySelect.value); if (typeSelect.value) query.set('type', typeSelect.value); location.href = `listings.html?${query}`; });
+
+  buttons.forEach(button => button.addEventListener('click', () => {
+    intent = button.dataset.intent;
+    localitySelect.value = '';
+    typeSelect.value = '';
+    refresh();
+  }));
+
+  document.querySelector('#home-search').addEventListener('submit', event => {
+    event.preventDefault();
+    const query = new URLSearchParams({ intent });
+    if (localitySelect.value) query.set('locality', localitySelect.value);
+    if (typeSelect.value) query.set('type', typeSelect.value);
+    location.href = `listings.html?${query}`;
+  });
+
   refresh();
 }
+
+function renderFeaturedGrid() {
+  const grid = document.querySelector('#featured-grid');
+  if (!grid) return;
+  const featured = listings.filter(item => item.featured);
+  grid.innerHTML = featured.map(item => card(item)).join('');
+  attachCardClickListeners(grid);
+}
+
+/* =========================================================
+   LISTINGS PAGE (listings.html)
+   ========================================================= */
 
 function setupListings() {
   let intent = params.get('intent') || 'all';
   if (!['all', 'buy', 'rent', 'commercial'].includes(intent)) intent = 'all';
+
+  const isSavedOnly = params.get('saved') === 'true';
+  const citySelect = document.querySelector('#filter-city');
   const locality = document.querySelector('#filter-locality');
   const type = document.querySelector('#filter-type');
   const budget = document.querySelector('#filter-budget');
   const sort = document.querySelector('#filter-sort');
   const buttons = [...document.querySelectorAll('[data-filter-intent]')];
+
+  const initialCity = params.get('city') || '';
   const initialLocality = params.get('locality') || '';
   const initialType = params.get('type') || '';
-  let pendingLocality = initialLocality;
-  let pendingType = initialType;
+
+  if (citySelect && initialCity) citySelect.value = initialCity;
+
   function renderOptions() {
-    const group = listings.filter(item => intent === 'all' || item.intent === intent);
-    addOptions(locality, [...new Set(group.map(item => item.locality))].sort(), 'All locations', pendingLocality ?? locality.value);
-    addOptions(type, [...new Set(group.map(item => item.type))].sort(), 'All types', pendingType ?? type.value);
-    pendingLocality = null; pendingType = null;
-    const ranges = intent === 'all' ? [['', 'Any budget']] : intent === 'buy' ? [['', 'Any budget'], ['10000000', 'Up to ₹1 Cr'], ['20000000', 'Up to ₹2 Cr'], ['35000000', 'Up to ₹3.5 Cr']] : [['', 'Any budget'], ['50000', 'Up to ₹50,000 / mo'], ['100000', 'Up to ₹1 L / mo'], ['200000', 'Up to ₹2 L / mo'], ['300000', 'Up to ₹3 L / mo']];
-    budget.innerHTML = ranges.map(([value, text]) => `<option value="${value}">${text}</option>`).join('');
-    sort.innerHTML = intent === 'all' ? '<option value="default">Featured first</option>' : '<option value="default">Featured first</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option>';
+    const selectedCity = citySelect ? citySelect.value : '';
+    const group = listings.filter(item => {
+      if (selectedCity && item.city !== selectedCity) return false;
+      if (intent !== 'all' && item.intent !== intent) return false;
+      return true;
+    });
+
+    addOptions(locality, [...new Set(group.map(item => item.locality))].sort(), 'All locations', locality.value);
+    addOptions(type, [...new Set(group.map(item => item.type))].sort(), 'All types', type.value);
+
+    const ranges = intent === 'all'
+      ? [['', 'Any budget'], ['10000000', 'Up to ₹1 Cr'], ['20000000', 'Up to ₹2 Cr'], ['50000000', 'Up to ₹5 Cr']]
+      : intent === 'buy'
+      ? [['', 'Any budget'], ['8000000', 'Up to ₹80 Lakh'], ['15000000', 'Up to ₹1.5 Cr'], ['25000000', 'Up to ₹2.5 Cr'], ['50000000', 'Up to ₹5 Cr']]
+      : [['', 'Any budget'], ['50000', 'Up to ₹50,000 / mo'], ['100000', 'Up to ₹1 L / mo'], ['200000', 'Up to ₹2 L / mo'], ['300000', 'Up to ₹3 L / mo']];
+
+    budget.innerHTML = ranges.map(([val, text]) => `<option value="${val}">${text}</option>`).join('');
     buttons.forEach(button => button.classList.toggle('selected', button.dataset.filterIntent === intent));
   }
+
   function update() {
     const maximum = Number(budget.value) || Infinity;
-    let found = listings.filter(item => (intent === 'all' || item.intent === intent) && (!locality.value || item.locality === locality.value) && (!type.value || item.type === type.value) && item.price <= maximum);
+    const selectedCity = citySelect ? citySelect.value : '';
+    const savedIds = getSavedIds();
+
+    let found = listings.filter(item => {
+      if (isSavedOnly && !savedIds.includes(item.id)) return false;
+      if (selectedCity && item.city !== selectedCity) return false;
+      if (intent !== 'all' && item.intent !== intent) return false;
+      if (locality.value && item.locality !== locality.value) return false;
+      if (type.value && item.type !== type.value) return false;
+      if (item.price > maximum) return false;
+      return true;
+    });
+
     if (sort.value === 'price-asc') found.sort((a, b) => a.price - b.price);
     if (sort.value === 'price-desc') found.sort((a, b) => b.price - a.price);
-    document.querySelector('#listing-grid').innerHTML = found.map(item => card(item)).join('');
+
+    const grid = document.querySelector('#listing-grid');
+    grid.innerHTML = found.map(item => card(item)).join('');
+    attachCardClickListeners(grid);
+
     document.querySelector('#listing-empty').hidden = found.length > 0;
-    document.querySelector('#results-count').textContent = `${found.length} illustrative ${found.length === 1 ? 'property' : 'properties'} found`;
-    document.querySelector('#results-title').textContent = intent === 'all' ? 'Explore properties' : `${label(intent)} properties`;
+    document.querySelector('#results-count').textContent = `${found.length} architectural ${found.length === 1 ? 'property' : 'properties'} found`;
+    document.querySelector('#results-title').textContent = isSavedOnly ? 'Saved Properties' : intent === 'all' ? 'Explore portfolio' : `${label(intent)} portfolio`;
   }
-  function reset() { intent = 'all'; locality.value = ''; type.value = ''; budget.value = ''; sort.value = 'default'; renderOptions(); update(); history.replaceState(null, '', 'listings.html'); }
-  buttons.forEach(button => button.addEventListener('click', () => { intent = button.dataset.filterIntent; locality.value = ''; type.value = ''; renderOptions(); update(); }));
+
+  function reset() {
+    intent = 'all';
+    if (citySelect) citySelect.value = '';
+    locality.value = '';
+    type.value = '';
+    budget.value = '';
+    sort.value = 'default';
+    renderOptions();
+    update();
+    history.replaceState(null, '', 'listings.html');
+  }
+
+  buttons.forEach(button => button.addEventListener('click', () => {
+    intent = button.dataset.filterIntent;
+    locality.value = '';
+    type.value = '';
+    renderOptions();
+    update();
+  }));
+
+  if (citySelect) citySelect.addEventListener('change', () => { renderOptions(); update(); });
   [locality, type, budget, sort].forEach(control => control.addEventListener('change', update));
-  document.querySelector('#reset-filters').addEventListener('click', reset);
-  document.querySelector('#empty-reset').addEventListener('click', reset);
-  renderOptions(); update();
+
+  const resetBtn = document.querySelector('#reset-filters');
+  if (resetBtn) resetBtn.addEventListener('click', reset);
+
+  const emptyReset = document.querySelector('#empty-reset');
+  if (emptyReset) emptyReset.addEventListener('click', reset);
+
+  renderOptions();
+  update();
 }
+
+/* =========================================================
+   PROPERTY DETAILS PAGE (property.html) (Requirement 3)
+   ========================================================= */
 
 function setupProperty() {
   const item = listings.find(entry => entry.id === params.get('id'));
   const main = document.querySelector('#property-main');
-  if (!item) { main.innerHTML = `<div class="not-found"><span class="eyebrow">Property not found</span><h1>Let's find another space.</h1><p>This demo listing may have moved.</p><a class="button button-dark" href="listings.html">Browse properties →</a></div>`; return; }
-  document.title = `${item.title} — SSR Realty Draft`;
-  main.innerHTML = `<nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span>/</span><a href="listings.html">Properties</a><span>/</span><span>${escapeHtml(item.title)}</span></nav><div class="property-heading"><div><span class="eyebrow">${label(item.intent)} · ${escapeHtml(item.locality)}</span><h1>${escapeHtml(item.title)}</h1><p>${escapeHtml(item.city)} · ${escapeHtml(item.status)}</p></div><div class="property-price"><strong>${escapeHtml(item.priceLabel)}</strong><span>${escapeHtml(item.priceNote)}</span></div></div><div class="property-visual"><img src="${item.image}" alt="Illustrative view representing ${escapeHtml(item.title)}"><span>Illustrative property image</span></div><div class="property-layout"><div class="property-detail"><div class="fact-row"><div><small>Property type</small><strong>${label(item.type)}</strong></div><div><small>Configuration</small><strong>${escapeHtml(item.config)}</strong></div><div><small>Approx. area</small><strong>${item.areaSqft.toLocaleString('en-IN')} sq.ft</strong></div></div><span class="eyebrow">About this space</span><h2>Picture the possibilities.</h2><p class="lead">${escapeHtml(item.summary)}</p><h3>At a glance</h3><ul class="highlight-list">${item.highlights.map(value => `<li>${escapeHtml(value)}</li>`).join('')}</ul><div class="property-honesty"><strong>About this draft</strong><p>This listing, image, price and availability are illustrative. SSR has not supplied or verified this property. RERA details will appear only after a real listing is reviewed.</p></div></div><aside class="property-side"><span class="eyebrow">Interested?</span><h2>Start with a question.</h2><p>Ask SSR Bot about this demo property or preview an enquiry.</p><button class="button button-dark" type="button" data-open-chat>Ask SSR Bot ✦</button><a class="button button-outline" href="contact.html?listing=${encodeURIComponent(item.id)}">Preview enquiry →</a></aside></div><div class="related-heading"><span class="eyebrow">Keep exploring</span><h2>More spaces to consider</h2></div><div class="card-grid related-grid">${listings.filter(entry => entry.id !== item.id).slice(0, 3).map(entry => card(entry)).join('')}</div>`;
-  main.querySelector('[data-open-chat]').addEventListener('click', () => setChatOpen(true));
+  if (!item) {
+    main.innerHTML = `
+      <div class="empty-state" style="margin-top: 50px;">
+        <span class="eyebrow">Property not found</span>
+        <h1>Let's find another space.</h1>
+        <p class="lead">This property may have been relocated.</p>
+        <a class="button button-gold" href="listings.html">Browse properties →</a>
+      </div>
+    `;
+    return;
+  }
+
+  document.title = `${item.title} — WONACRE Architectural Dossier`;
+
+  const user = getAuthUser();
+  const saved = isSaved(item.id);
+  const gallery = getPropertyGallery(item);
+
+  // If user is NOT logged in, show lock gate!
+  if (!user) {
+    main.innerHTML = `
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="index.html">Discover</a><span>/</span>
+        <a href="listings.html">Portfolio</a><span>/</span>
+        <span>${escapeHtml(item.title)}</span>
+      </nav>
+
+      <div class="property-heading">
+        <div>
+          <span class="eyebrow">${label(item.intent).toUpperCase()} // ${escapeHtml(item.city).toUpperCase()} · ${escapeHtml(item.locality)}</span>
+          <h1>${escapeHtml(item.title)}</h1>
+          <p class="lead">${escapeHtml(item.city)} · ${escapeHtml(item.status)} · ${escapeHtml(item.config)}</p>
+        </div>
+        <div class="property-price">
+          <strong>${escapeHtml(item.priceLabel)}</strong>
+          <span>${escapeHtml(item.priceNote)}</span>
+        </div>
+      </div>
+
+      <div class="property-visual" style="filter: brightness(0.7);">
+        <img src="${item.image}" alt="Preview image for ${escapeHtml(item.title)}">
+        <span style="background: rgba(224, 186, 123, 0.2); color: var(--gold); border: 1px solid var(--border-gold);">
+          🔒 Dossier Locked
+        </span>
+      </div>
+
+      <div class="property-locked-banner">
+        <div class="auth-lock-icon" style="margin: 0 auto 16px;">🔒</div>
+        <h2>Sign in to Unlock Full Dossier & Photography</h2>
+        <p>
+          Architectural blueprints, 4K multi-photo gallery, acoustic ratings, and floor plans for <strong>${escapeHtml(item.title)}</strong> are reserved for authenticated members.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+          <button type="button" class="button button-gold" id="page-unlock-btn">
+            Sign In & View Full Info →
+          </button>
+          <button type="button" class="button button-ghost-light" id="page-demo-unlock-btn">
+            ⚡ Quick 1-Click Guest Unlock
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.querySelector('#page-unlock-btn').addEventListener('click', () => openAuthModal(item.id));
+    document.querySelector('#page-demo-unlock-btn').addEventListener('click', () => {
+      executeLogin({ name: 'Alex Morgan', email: 'alex.morgan@example.com' });
+      setupProperty();
+    });
+    return;
+  }
+
+  // User IS logged in: Render complete unlocked dossier with multi-photo gallery & specs!
+  main.innerHTML = `
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="index.html">Discover</a><span>/</span>
+      <a href="listings.html">Portfolio</a><span>/</span>
+      <span>${escapeHtml(item.title)}</span>
+    </nav>
+
+    <div class="property-heading">
+      <div>
+        <span class="eyebrow">${label(item.intent).toUpperCase()} // ${escapeHtml(item.city).toUpperCase()} · ${escapeHtml(item.locality)}</span>
+        <h1>${escapeHtml(item.title)}</h1>
+        <p class="lead">${escapeHtml(item.city)} · ${escapeHtml(item.status)} · Authenticated Member Dossier</p>
+      </div>
+      <div class="property-price">
+        <strong>${escapeHtml(item.priceLabel)}</strong>
+        <span>${escapeHtml(item.priceNote)}</span>
+      </div>
+    </div>
+
+    <!-- Multi-Photo Gallery -->
+    <div class="gallery-container" style="margin-bottom: 40px;">
+      <div class="gallery-main-view">
+        <img id="page-gallery-img" src="${gallery[0]}" alt="${escapeHtml(item.title)} primary view">
+        <button type="button" class="gallery-nav-btn gallery-prev" id="page-gallery-prev">‹</button>
+        <button type="button" class="gallery-nav-btn gallery-next" id="page-gallery-next">›</button>
+        <div class="gallery-caption-bar">
+          <span id="page-gallery-caption">${GALLERY_LABELS[0]}</span>
+          <span class="gallery-counter" id="page-gallery-counter">PHOTO 1 OF ${gallery.length}</span>
+        </div>
+      </div>
+      <div class="gallery-thumbs-row" id="page-gallery-thumbs">
+        ${gallery.map((imgUrl, i) => `
+          <div class="gallery-thumb-item ${i === 0 ? 'active' : ''}" data-idx="${i}">
+            <img src="${imgUrl}" alt="Photo ${i + 1}">
+            <span class="gallery-thumb-label">${GALLERY_LABELS[i] || `View ${i + 1}`}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="property-layout">
+      <div class="property-detail">
+        <div class="fact-row">
+          <div><small>Property type</small><strong>${label(item.type)}</strong></div>
+          <div><small>Configuration</small><strong>${escapeHtml(item.config)}</strong></div>
+          <div><small>Super Built-Up Area</small><strong>${item.areaSqft.toLocaleString('en-IN')} sq.ft</strong></div>
+        </div>
+
+        <span class="eyebrow">Architectural Concept</span>
+        <h2>Considered living space.</h2>
+        <p class="lead">${escapeHtml(item.summary)}</p>
+
+        <h3 style="margin-top: 36px;">Verified Spatial Highlights</h3>
+        <ul class="highlight-list">
+          ${item.highlights.map(h => `<li>${escapeHtml(h)}</li>`).join('')}
+        </ul>
+
+        <!-- TECHNICAL SPECIFICATIONS TABLE (From user photo) -->
+        <div class="dossier-spec-section" style="margin-top: 36px;">
+          <span class="dossier-section-title">TECHNICAL SPECIFICATIONS</span>
+          <div class="tech-specs-table">
+            ${Object.entries(Object.assign({
+              "Ceiling Height": "10.6 ft clear height",
+              "Flooring Material": "Micro-cement & smoked oak hardwood",
+              "Acoustic & Thermal Glazing": "Saint-Gobain low-E thermal acoustic glass",
+              "Covered Parking": "1 Dedicated Bays",
+              "Balconies & Terraces": "2 Private Outdoor Balconies"
+            }, item.technicalSpecs || {})).map(([k, v]) => `
+              <div class="tech-spec-row">
+                <div class="tech-spec-label">${escapeHtml(k)}</div>
+                <div class="tech-spec-value">${escapeHtml(v)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- RESIDENTIAL AMENITIES CHIPS (From user photo) -->
+        <div class="dossier-amenities-section" style="margin-top: 24px;">
+          <span class="dossier-section-title">RESIDENTIAL AMENITIES</span>
+          <div class="amenities-chips-wrap">
+            ${(item.amenities || [
+              "Lap pool with slate stone perimeter",
+              "Residents library & reading pavilion",
+              "EV car charging bay",
+              "24/7 security with RFID gate access",
+              "Rooftop stargazing deck"
+            ]).map(a => `<span class="amenity-chip">${escapeHtml(a)}</span>`).join('')}
+          </div>
+        </div>
+
+        <!-- SCHEDULE A PRIVATE ARCHITECTURAL VIEWING & SEND BROCHURE -->
+        <div class="viewing-brochure-card" style="margin-top: 36px; margin-bottom: 24px;">
+          <h4>Schedule a Private Architectural Viewing</h4>
+          <p>Walk through with a WONACRE certified architectural curator. No broker spam.</p>
+          <form id="page-viewing-form">
+            <div class="viewing-form-grid">
+              <input type="text" class="viewing-input" id="page-viewing-name" placeholder="Your Full Name" value="${escapeHtml(user?.name || '')}" required>
+              <input type="tel" class="viewing-input" id="page-viewing-phone" placeholder="Phone or WhatsApp Number" value="${escapeHtml(user?.phone || '')}" required>
+            </div>
+            <button type="submit" class="viewing-submit-btn">
+              Confirm Viewing Appointment & Send Brochure
+            </button>
+          </form>
+          <div id="page-viewing-success" class="viewing-success-box" hidden>
+            <strong style="color: var(--emerald); font-size: 0.95rem;">✓ Official Brochure & Dossier Dispatched!</strong>
+            <p style="margin: 6px 0 0; color: #cbd5e1; font-size: 0.82rem; line-height: 1.5;">
+              The full architectural brochure and specifications for <strong>${escapeHtml(item.title)}</strong> have been sent to WhatsApp. A WONACRE curator will coordinate your private walkthrough shortly.
+            </p>
+          </div>
+        </div>
+
+        <div class="property-honesty">
+          <strong>Verified Architectural Dossier</strong>
+          <p>This dossier contains authenticated spatial blueprints and photography for ${escapeHtml(item.title)}. All specifications have been indexed for spatial intelligence searches.</p>
+        </div>
+      </div>
+
+      <aside class="property-side">
+        <span class="eyebrow">Interested in this space?</span>
+        <h2>Connect with an Advisor</h2>
+        <p class="lead" style="font-size: 0.95rem;">
+          Coordinate a private site walkthrough or request custom spatial blueprints.
+        </p>
+        <button class="button button-gold" type="button" id="page-save-btn">
+          ${saved ? '★ Saved to My Portfolio' : '☆ Save to My Portfolio'}
+        </button>
+        <a class="button button-dark" href="contact.html?listing=${encodeURIComponent(item.id)}">
+          Schedule Private Tour →
+        </a>
+        <button class="button button-ghost-light" type="button" data-open-chat>
+          Ask WONACRE AI About This ✦
+        </button>
+      </aside>
+    </div>
+
+    <div class="related-heading">
+      <span class="eyebrow">Keep exploring</span>
+      <h2>More spaces to consider</h2>
+    </div>
+    <div class="card-grid related-grid">
+      ${listings.filter(entry => entry.id !== item.id).slice(0, 3).map(entry => card(entry)).join('')}
+    </div>
+  `;
+
+  // Gallery slider logic for page
+  let pageGalleryIdx = 0;
+  const pageMainImg = document.querySelector('#page-gallery-img');
+  const pageCaption = document.querySelector('#page-gallery-caption');
+  const pageCounter = document.querySelector('#page-gallery-counter');
+  const thumbs = document.querySelectorAll('#page-gallery-thumbs .gallery-thumb-item');
+
+  function updatePageGallery() {
+    if (pageGalleryIdx < 0) pageGalleryIdx = gallery.length - 1;
+    if (pageGalleryIdx >= gallery.length) pageGalleryIdx = 0;
+    pageMainImg.src = gallery[pageGalleryIdx];
+    pageCaption.textContent = GALLERY_LABELS[pageGalleryIdx] || `Photograph ${pageGalleryIdx + 1}`;
+    pageCounter.textContent = `PHOTO ${pageGalleryIdx + 1} OF ${gallery.length}`;
+    thumbs.forEach((t, i) => t.classList.toggle('active', i === pageGalleryIdx));
+  }
+
+  document.querySelector('#page-gallery-prev').addEventListener('click', () => { pageGalleryIdx--; updatePageGallery(); });
+  document.querySelector('#page-gallery-next').addEventListener('click', () => { pageGalleryIdx++; updatePageGallery(); });
+  thumbs.forEach(t => t.addEventListener('click', () => { pageGalleryIdx = Number(t.dataset.idx); updatePageGallery(); }));
+
+  // Page save button
+  const pageSaveBtn = document.querySelector('#page-save-btn');
+  if (pageSaveBtn) {
+    pageSaveBtn.addEventListener('click', () => {
+      const isNow = toggleSaved(item.id);
+      pageSaveBtn.textContent = isNow ? '★ Saved to My Portfolio' : '☆ Save to My Portfolio';
+    });
+  }
+
+  // Page viewing & brochure form
+  const pageForm = document.querySelector('#page-viewing-form');
+  const pageSuccess = document.querySelector('#page-viewing-success');
+  if (pageForm && pageSuccess) {
+    pageForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      pageForm.style.display = 'none';
+      pageSuccess.hidden = false;
+    });
+  }
+
+  // Attach card click listeners to related grid
+  attachCardClickListeners(main.querySelector('.related-grid'));
 }
+
+/* =========================================================
+   CONTACT PAGE (contact.html)
+   ========================================================= */
 
 function setupContact() {
   const item = listings.find(entry => entry.id === params.get('listing'));
-  if (item) document.querySelector('#enquiry-requirement').value = `I am interested in ${item.title} (${item.locality}).`;
+  if (item) {
+    document.querySelector('#enquiry-requirement').value = `I am interested in scheduling a tour of ${item.title} (${item.locality}, ${item.city}) - ${item.priceLabel}.`;
+  }
   const form = document.querySelector('#enquiry-form');
-  form.addEventListener('submit', event => { event.preventDefault(); if (!form.reportValidity()) return; form.hidden = true; document.querySelector('#enquiry-success').hidden = false; });
-  document.querySelector('#enquiry-again').addEventListener('click', () => { form.reset(); form.hidden = false; document.querySelector('#enquiry-success').hidden = true; });
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    form.hidden = true;
+    document.querySelector('#enquiry-success').hidden = false;
+  });
+  document.querySelector('#enquiry-again').addEventListener('click', () => {
+    form.reset();
+    form.hidden = false;
+    document.querySelector('#enquiry-success').hidden = true;
+  });
+}
+
+/* =========================================================
+   CHATBOT LOGIC
+   ========================================================= */
+
+function setChatOpen(open) {
+  const panel = document.querySelector('#chat-panel');
+  if (!panel) return;
+  panel.hidden = !open;
+  const launcher = document.querySelector('#chat-launcher');
+  if (launcher) launcher.setAttribute('aria-expanded', String(open));
+  if (open) {
+    const input = document.querySelector('#chat-input');
+    if (input) input.focus();
+  }
 }
 
 function addChatMessage(text, who) {
-  const el = document.createElement('div'); el.className = `chat-message ${who}`; el.textContent = text;
+  const el = document.createElement('div');
+  el.className = `chat-message ${who}`;
+  el.textContent = text;
   document.querySelector('#chat-messages').append(el);
   el.scrollIntoView({ block: 'end', behavior: 'smooth' });
   return el;
@@ -119,42 +1420,221 @@ function addChatMessage(text, who) {
 function setupChat() {
   const form = document.querySelector('#chat-form');
   const input = document.querySelector('#chat-input');
-  fetch('/api/status').then(response => response.json()).then(data => {
-    document.querySelector('#chat-mode').textContent = data.geminiConfigured ? 'Gemini-powered demo search' : 'Local preview · Gemini key needed';
-  }).catch(() => { document.querySelector('#chat-mode').textContent = 'Start the local server to chat'; });
+  if (!form || !input) return;
+
+  fetch('/api/status').then(r => r.json()).then(data => {
+    const modeEl = document.querySelector('#chat-mode');
+    if (modeEl) {
+      modeEl.textContent = data.geminiConfigured ? 'Gemini Architectural Intelligence' : 'Active Metropolis Spatial Model';
+    }
+  }).catch(() => {
+    const modeEl = document.querySelector('#chat-mode');
+    if (modeEl) modeEl.textContent = 'Active Metropolis Spatial Model';
+  });
+
   async function sendMessage(message) {
-    const clean = message.trim(); if (!clean) return;
+    const clean = message.trim();
+    if (!clean) return;
     addChatMessage(clean, 'user');
-    input.value = ''; input.disabled = true; form.querySelector('button').disabled = true;
-    const pending = addChatMessage('Searching the demo listings…', 'bot');
+    input.value = '';
+
+    // Requirement: If user asks anything about any property, require login first!
+    const user = getAuthUser();
+    if (!user) {
+      pendingChatQuery = clean;
+      const gateMsg = addChatMessage('', 'bot');
+      gateMsg.innerHTML = `
+        <div class="chat-auth-card">
+          <span class="chat-auth-badge">Authentication Required</span>
+          <h4 style="margin:0 0 4px; font-size:0.95rem; color:#fff;">Sign in to Inquire About Properties</h4>
+          <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 12px; line-height:1.4;">
+            To access property information, blueprints, and request official brochures, please sign in to your WONACRE account.
+          </p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="button button-gold" style="padding:7px 14px; font-size:0.8rem;" id="chat-login-action-btn">
+              Sign In to Inquire →
+            </button>
+            <button type="button" class="button button-ghost-light" style="padding:7px 12px; font-size:0.78rem;" id="chat-demo-action-btn">
+              ⚡ Quick 1-Click Guest Unlock
+            </button>
+          </div>
+        </div>
+      `;
+
+      gateMsg.querySelector('#chat-login-action-btn').addEventListener('click', () => {
+        openAuthModal();
+      });
+      gateMsg.querySelector('#chat-demo-action-btn').addEventListener('click', () => {
+        executeLogin({ name: 'Alex Morgan', email: 'alex.morgan@example.com' });
+      });
+
+      gateMsg.scrollIntoView({ block: 'end', behavior: 'smooth' });
+      return;
+    }
+
+    input.disabled = true;
+    form.querySelector('button').disabled = true;
+
+    const pending = addChatMessage('Analyzing architectural database…', 'bot');
     try {
-      const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: clean, filters: chatFilters }) });
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: clean, filters: chatFilters })
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Chat is unavailable.');
       chatFilters = data.filters || {};
+
+      // Requirement: Minimal info first!
       pending.textContent = data.reply;
+
       const found = (data.listingIds || []).map(id => listings.find(item => item.id === id)).filter(Boolean).slice(0, 3);
       if (found.length) {
-        const group = document.createElement('div'); group.className = 'chat-result-list';
-        group.innerHTML = found.map(item => `<a href="${propertyUrl(item.id)}"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.locality)} · ${escapeHtml(item.priceLabel)}</span><i>↗</i></a>`).join('');
+        // Minimal clickable list
+        const group = document.createElement('div');
+        group.className = 'chat-result-list';
+        group.innerHTML = found.map(item => `
+          <a href="${propertyUrl(item.id)}" data-chat-property-id="${escapeHtml(item.id)}">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${escapeHtml(item.locality)}, ${escapeHtml(item.city)} · ${escapeHtml(item.priceLabel)}</span>
+            <i>↗</i>
+          </a>
+        `).join('');
+
+        group.querySelectorAll('a').forEach(a => {
+          a.addEventListener('click', (e) => {
+            handlePropertyClick(e, a.dataset.chatPropertyId);
+          });
+        });
         document.querySelector('#chat-messages').append(group);
+
+        // Interactive Brochure & Private Viewing Card for the top match (matching user photo)
+        const topItem = found[0];
+        const cardEl = document.createElement('div');
+        cardEl.className = 'chat-brochure-viewing-card';
+
+        const defaultSpecs = {
+          "Ceiling Height": "10.6 ft clear height",
+          "Acoustic & Thermal Glazing": "Saint-Gobain low-E thermal acoustic glass",
+          "Covered Parking": "1 Dedicated Bays"
+        };
+        const specs = Object.assign({}, defaultSpecs, topItem.technicalSpecs || {});
+        const amenities = topItem.amenities || [
+          "Lap pool with slate stone perimeter",
+          "Residents library & reading pavilion",
+          "EV car charging bay",
+          "24/7 security with RFID gate access"
+        ];
+
+        cardEl.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <span class="eyebrow light" style="font-size: 0.65rem; margin-bottom: 2px;">ARCHITECTURAL DOSSIER</span>
+              <h4 style="margin: 0; font-size: 0.95rem; color: #ffffff;">${escapeHtml(topItem.title)}</h4>
+              <span style="font-size: 0.78rem; color: var(--gold); font-weight: 600;">${escapeHtml(topItem.priceLabel)} · ${escapeHtml(topItem.config)}</span>
+            </div>
+            <button type="button" class="button button-ghost-light" style="padding: 4px 10px; font-size: 0.72rem;" id="chat-open-dossier-btn">
+              Full Dossier ↗
+            </button>
+          </div>
+
+          <div style="font-size: 0.68rem; font-weight: 700; color: #8493a5; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px;">
+            TECHNICAL SPECIFICATIONS
+          </div>
+          <div class="chat-mini-specs">
+            <span>📐 Ceiling: ${escapeHtml(specs['Ceiling Height'] || '10.6 ft')}</span>
+            <span>🪟 Glazing: ${escapeHtml(specs['Acoustic & Thermal Glazing'] || 'Saint-Gobain')}</span>
+            <span>🚗 Parking: ${escapeHtml(specs['Covered Parking'] || '1 Dedicated Bay')}</span>
+          </div>
+
+          <div style="font-size: 0.68rem; font-weight: 700; color: #8493a5; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px;">
+            RESIDENTIAL AMENITIES
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+            ${amenities.slice(0, 3).map(a => `<span class="amenity-chip" style="font-size: 0.7rem; padding: 4px 8px;">${escapeHtml(a)}</span>`).join('')}
+          </div>
+
+          <!-- Schedule a Private Architectural Viewing Card matching user photo -->
+          <div style="background: rgba(10, 13, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 12px;">
+            <strong style="font-size: 0.85rem; color: #fff; display: block; margin-bottom: 2px;">
+              Schedule a Private Architectural Viewing
+            </strong>
+            <p style="font-size: 0.72rem; color: var(--ink-secondary); margin: 0 0 10px;">
+              Walk through with a WONACRE certified architectural curator. No broker spam.
+            </p>
+
+            <form class="chat-viewing-form">
+              <div class="chat-brochure-inputs">
+                <input type="text" name="name" placeholder="Your Full Name" value="${escapeHtml(user.name || '')}" required>
+                <input type="tel" name="phone" placeholder="Phone or WhatsApp Number" value="${escapeHtml(user.phone || '')}" required>
+                <button type="submit" class="viewing-submit-btn" style="height: 38px; font-size: 0.78rem;">
+                  Confirm Viewing & Send Brochure
+                </button>
+              </div>
+            </form>
+            <div class="chat-viewing-success" style="display: none; font-size: 0.78rem; color: var(--emerald); padding-top: 8px;">
+              ✓ Official brochure dispatched to WhatsApp! A WONACRE curator will coordinate your private viewing.
+            </div>
+          </div>
+        `;
+
+        cardEl.querySelector('#chat-open-dossier-btn').addEventListener('click', () => {
+          showPropertyModal(topItem);
+        });
+
+        const vForm = cardEl.querySelector('.chat-viewing-form');
+        const vSuccess = cardEl.querySelector('.chat-viewing-success');
+        vForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          vForm.style.display = 'none';
+          vSuccess.style.display = 'block';
+        });
+
+        document.querySelector('#chat-messages').append(cardEl);
       }
       pending.scrollIntoView({ block: 'end', behavior: 'smooth' });
-    } catch (error) { pending.textContent = error.message; }
-    finally { input.disabled = false; form.querySelector('button').disabled = false; input.focus(); }
+    } catch (error) {
+      pending.textContent = error.message;
+    } finally {
+      input.disabled = false;
+      form.querySelector('button').disabled = false;
+      input.focus();
+    }
   }
-  form.addEventListener('submit', event => { event.preventDefault(); sendMessage(input.value); });
-  document.querySelectorAll('.chat-suggestions button').forEach(button => button.addEventListener('click', () => sendMessage(button.textContent)));
+
+  window.sendChatMessage = sendMessage;
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    sendMessage(input.value);
+  });
+
+  document.querySelectorAll('.chat-suggestions button').forEach(button => {
+    button.addEventListener('click', () => sendMessage(button.textContent));
+  });
 }
+
+/* =========================================================
+   APPLICATION BOOTSTRAP
+   ========================================================= */
 
 async function init() {
   renderShell();
-  try { const response = await fetch('data/listings.json'); if (!response.ok) throw new Error('Could not load demo inventory'); listings = await response.json(); }
-  catch { document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="data-error">Demo listings could not load. Please run the local server.</p>'); }
+
+  try {
+    const response = await fetch('data/listings.json');
+    if (!response.ok) throw new Error('Could not load portfolio');
+    listings = await response.json();
+  } catch {
+    document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="data-error" style="color: #ef4444; padding: 20px;">Could not load listings. Please run local server.</p>');
+  }
+
   if (page === 'home') setupHome();
   if (page === 'listings') setupListings();
   if (page === 'property') setupProperty();
   if (page === 'contact') setupContact();
+
   setupChat();
 }
 

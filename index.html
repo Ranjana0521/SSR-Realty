@@ -1,43 +1,192 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore an interactive concept for SSR Realty property discovery. Listings are illustrative.">
-  <title>SSR Realty — Find your place with clarity</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore an interactive concept for WONACRE property discovery with conversational architectural intelligence.">
+  <title>WONACRE — Architectural Property Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body data-page="home">
   <div id="site-header"></div>
   <main>
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-media" role="img" aria-label="Illustrative contemporary apartment architecture in Bengaluru"></div>
-      <div class="hero-shade"></div>
-      <div class="hero-content container">
+      <!-- Light glass background with property image -->
+      <div class="hero-bg-media" role="img" aria-label="Modern architectural glass residence at dusk"></div>
+      <div class="hero-glass-overlay"></div>
+      <div class="hero-backdrop-glow"></div>
+      <div class="container hero-grid">
         <div class="hero-copy-block">
-          <span class="eyebrow light">Property decisions, made clearer</span>
-          <h1 id="hero-title">A place for your<br><em>next chapter.</em></h1>
-          <p>Explore homes and commercial spaces with room to ask better questions and move forward with confidence.</p>
-          <div class="hero-actions"><a class="button button-light" href="listings.html">Explore properties <span aria-hidden="true">↗</span></a><button class="button button-ghost-light" data-open-chat type="button">Ask SSR Bot <span aria-hidden="true">✦</span></button></div>
+          <div class="hero-eyebrow-chip">
+            <span class="chip-dot"></span>
+            <span>A more considered way to find home</span>
+          </div>
+          <h1 id="hero-title">Where thoughtful design<br>meets the space you<br><em>call home.</em></h1>
+          <p class="hero-lead-text">Discover residences and workspaces crafted with purpose, proportion, and quiet clarity through conversational spatial intelligence.</p>
+
+          <!-- Spatial Search Console (as shown in user photo) -->
+          <div class="spatial-search-box">
+            <div class="spatial-search-tabs">
+              <button type="button" class="spatial-tab-btn selected" data-hero-intent="buy">Acquisition (Buy)</button>
+              <button type="button" class="spatial-tab-btn" data-hero-intent="rent">Long Lease (Rent)</button>
+              <select id="hero-city-select" class="spatial-tab-select" aria-label="Target Metropolis">
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Gurgaon">Gurgaon</option>
+              </select>
+              <select id="hero-budget-select" class="spatial-tab-select" aria-label="Target Budget">
+                <option value="8000000">Under ₹80 Lakh</option>
+                <option value="15000000" selected>Under ₹1.5 Cr</option>
+                <option value="35000000">Under ₹3.5 Cr</option>
+                <option value="">Any budget</option>
+              </select>
+            </div>
+            <form id="hero-spatial-form" class="spatial-input-row">
+              <input id="hero-spatial-input" class="spatial-prompt-input" type="text" placeholder="A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony." value="A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony." aria-label="Describe your home">
+            </form>
+            <div class="spatial-search-bottom">
+              <div class="spatial-model-badge">
+                <span>✦</span> Natural Language Spatial Model
+              </div>
+              <button id="hero-consult-btn" type="button" class="consult-submit-btn">Consult WONACRE AI →</button>
+            </div>
+          </div>
         </div>
-        <p class="hero-caption">AN INTERACTIVE CONCEPT FOR SSR REALTY <span>01 / 04</span></p>
+
+        <!-- Featured Monograph Card (from user photo) -->
+        <div class="featured-monograph-card" data-open-property="linear-house-gachibowli" tabindex="0" role="button" aria-label="View The Linear House at Gachibowli">
+          <div class="monograph-image-wrap">
+            <img src="assets/prop-linear-exterior.jpg" alt="The Linear House at Gachibowli exterior architecture at dusk" loading="eager">
+            <div class="monograph-top-badges">
+              <span class="mono-spec-tag">ARCH. SPEC 01 // HYDERABAD</span>
+              <span class="mono-acoustic-tag">ACOUSTIC LOW-E</span>
+            </div>
+          </div>
+          <div class="monograph-body">
+            <div class="monograph-eyebrow-row">
+              <span>FEATURED MONOGRAPH</span>
+              <span class="monograph-price">₹78 Lakh</span>
+            </div>
+            <h3 class="monograph-title">The Linear House at Gachibowli</h3>
+            <div class="monograph-footer-meta">
+              <span>2 BHK · 1,450 sq.ft · East Facing · Balcony</span>
+              <span class="monograph-unlock-hint">🔒 Click to view full info & pics ↗</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
+    <!-- Secondary Filter Bar -->
     <section class="search-panel container" aria-labelledby="search-title">
-      <div class="search-heading"><div><span class="eyebrow">Start your search</span><h2 id="search-title">What are you looking for?</h2></div><p>Discover the right fit, from first home to next business address.</p></div>
-      <form id="home-search" class="home-search"><div class="segmented" role="group" aria-label="Property purpose"><button type="button" class="selected" data-intent="buy">Buy</button><button type="button" data-intent="rent">Rent</button><button type="button" data-intent="commercial">Commercial</button></div><label><span>Location</span><select name="locality" id="home-locality"><option value="">All locations</option></select></label><label><span>Property type</span><select name="type" id="home-type"><option value="">All types</option></select></label><button class="button button-dark" type="submit">Find spaces <span aria-hidden="true">→</span></button></form>
+      <div class="search-heading">
+        <div>
+          <span class="eyebrow">Explore Inventory</span>
+          <h2 id="search-title">Curated architectural spaces</h2>
+        </div>
+        <p>Discover the right fit across active metropolises, from residences to corporate studios.</p>
+      </div>
+      <form id="home-search" class="home-search">
+        <div class="segmented" role="group" aria-label="Property purpose">
+          <button type="button" class="selected" data-intent="buy">Buy</button>
+          <button type="button" data-intent="rent">Rent</button>
+          <button type="button" data-intent="commercial">Commercial</button>
+        </div>
+        <label>
+          <span>Location</span>
+          <select name="locality" id="home-locality">
+            <option value="">All locations</option>
+          </select>
+        </label>
+        <label>
+          <span>Property type</span>
+          <select name="type" id="home-type">
+            <option value="">All types</option>
+          </select>
+        </label>
+        <button class="button button-gold" type="submit">Filter spaces <span aria-hidden="true">→</span></button>
+      </form>
     </section>
 
-    <section class="section container" aria-labelledby="featured-title"><div class="section-top"><div><span class="eyebrow">A closer look</span><h2 id="featured-title">Spaces to imagine<br><em>what comes next.</em></h2></div><a class="text-link" href="listings.html">View all demo listings <span aria-hidden="true">↗</span></a></div><div id="featured-grid" class="card-grid"></div><p class="section-note">Every property, image, price and detail on this draft is illustrative.</p></section>
+    <!-- Featured Properties Grid -->
+    <section class="section container" aria-labelledby="featured-title">
+      <div class="section-top">
+        <div>
+          <span class="eyebrow">A closer look</span>
+          <h2 id="featured-title">Spaces to imagine<br><em>what comes next.</em></h2>
+        </div>
+        <a class="text-link" href="listings.html">View all properties <span aria-hidden="true">↗</span></a>
+      </div>
+      <div id="featured-grid" class="card-grid"></div>
+      <p class="section-note">Click any property to unlock full architectural blueprints, specifications and multi-photo galleries.</p>
+    </section>
 
-    <section class="value-section"><div class="container value-grid"><div><span class="eyebrow light">The SSR approach</span><h2>Property search should feel <em>considered.</em></h2></div><div class="value-list"><article><span>01</span><div><h3>Start with what matters</h3><p>Choose your location, purpose, budget and non-negotiables before you browse.</p></div></article><article><span>02</span><div><h3>See clear next steps</h3><p>Understand the space, then decide whether to ask SSR for a conversation or visit.</p></div></article><article><span>03</span><div><h3>Ask in your own words</h3><p>Use SSR Bot to turn a natural-language request into a search across the demo listings.</p></div></article></div></div></section>
+    <!-- The Approach -->
+    <section class="value-section">
+      <div class="container value-grid">
+        <div>
+          <span class="eyebrow light">The WONACRE approach</span>
+          <h2>Property search should feel <em>considered.</em></h2>
+        </div>
+        <div class="value-list">
+          <article>
+            <span>01</span>
+            <div>
+              <h3>Start with what matters</h3>
+              <p>Choose your metropolis, purpose, spatial layout and non-negotiables before you browse.</p>
+            </div>
+          </article>
+          <article>
+            <span>02</span>
+            <div>
+              <h3>Full architectural transparency</h3>
+              <p>View verified blueprints, orientation, floor levels, RERA credentials and high-res photography.</p>
+            </div>
+          </article>
+          <article>
+            <span>03</span>
+            <div>
+              <h3>Ask in your own words</h3>
+              <p>Use conversational spatial intelligence to find properties tailored to your daily lifestyle.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
 
-    <section class="section container commercial-feature"><div class="commercial-image" role="img" aria-label="Illustrative modern commercial office building"></div><div class="commercial-content"><span class="eyebrow">For business</span><h2>Space for the work<br><em>ahead.</em></h2><p>Retail, offices and showrooms deserve the same thoughtful search as a home. Explore commercial options in one clear place.</p><a class="button button-dark" href="listings.html?intent=commercial">Explore commercial <span aria-hidden="true">↗</span></a></div></section>
+    <!-- Commercial Section -->
+    <section class="section container commercial-feature">
+      <div class="commercial-image" role="img" aria-label="Modern commercial office building architecture"></div>
+      <div class="commercial-content">
+        <span class="eyebrow">For business</span>
+        <h2>Space for the work<br><em>ahead.</em></h2>
+        <p>Retail, corporate headquarters, and flagship showrooms deserve the same thoughtful spatial curation. Explore commercial options across key growth corridors.</p>
+        <a class="button button-gold" href="listings.html?intent=commercial">Explore commercial <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
 
-    <section class="closing-cta"><div class="container closing-grid"><div><span class="eyebrow light">Need a starting point?</span><h2>Tell us the space<br><em>you have in mind.</em></h2></div><div><p>The draft enquiry form shows the proposed journey. It does not send or save your information.</p><a class="button button-light" href="contact.html">Start an enquiry <span aria-hidden="true">→</span></a></div></div></section>
+    <!-- Closing Call To Action -->
+    <section class="closing-cta">
+      <div class="container closing-grid">
+        <div>
+          <span class="eyebrow light">Need a starting point?</span>
+          <h2>Tell us the space<br><em>you have in mind.</em></h2>
+        </div>
+        <div>
+          <p class="lead">Connect with an architectural property consultant or preview an enquiry for any shortlisted property.</p>
+          <a class="button button-light" href="contact.html">Start an enquiry <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
   </main>
-  <div id="site-footer"></div><div id="chat-root"></div>
+  <div id="site-footer"></div>
+  <div id="chat-root"></div>
+  <div id="modal-root"></div>
 </body>
 </html>

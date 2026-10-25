@@ -1,12 +1,114 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Browse illustrative SSR Realty homes, rentals and commercial spaces."><title>Explore Properties — SSR Realty</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css"><script src="app.js" defer></script></head>
-<body data-page="listings"><div id="site-header"></div><main>
-  <section class="page-hero listings-hero"><div class="hero-media" role="img" aria-label="Illustrative contemporary residential and commercial properties in Bengaluru"></div><div class="hero-shade"></div><div class="container"><span class="eyebrow light">Explore the possibilities</span><h1>Find a space that <em>fits.</em></h1><p>Refine the search around your plans. Every result below is an illustrative demo listing.</p></div></section>
-  <section class="section container catalogue" aria-label="Property search and results">
-    <div class="catalogue-toolbar"><div class="segmented" role="group" aria-label="Property purpose"><button type="button" data-filter-intent="all">All</button><button type="button" data-filter-intent="buy">Buy</button><button type="button" data-filter-intent="rent">Rent</button><button type="button" data-filter-intent="commercial">Commercial</button></div><button id="reset-filters" class="quiet-button" type="button">Reset filters ↺</button></div>
-    <div class="catalogue-body"><aside class="filter-panel"><div class="filter-title"><h2>Refine your search</h2><span>Demo filters</span></div><label>Location<select id="filter-locality"><option value="">All locations</option></select></label><label>Property type<select id="filter-type"><option value="">All types</option></select></label><label>Budget<select id="filter-budget"><option value="">Any budget</option></select></label><p class="filter-note">Prices, availability and images are illustrative and do not represent live SSR inventory.</p></aside>
-    <div class="catalogue-results"><div class="results-heading"><div><span class="eyebrow">Current selection</span><h2 id="results-title">Explore properties</h2><p id="results-count" aria-live="polite"></p></div><label>Sort by<select id="filter-sort"><option value="default">Featured first</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option></select></label></div><div id="listing-grid" class="card-grid"></div><div id="listing-empty" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>No matches in the demo set</h3><p>Try another location, type or budget to see more options.</p><button type="button" class="button button-dark" id="empty-reset">Clear filters</button></div></div></div>
-  </section>
-  <section class="mini-cta container"><div><span class="eyebrow">Describe it instead</span><h2>Know what you need, but not where to start?</h2></div><button class="button button-dark" data-open-chat type="button">Ask SSR Bot ✦</button></section>
-</main><div id="site-footer"></div><div id="chat-root"></div></body></html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse WONACRE architectural homes, rentals and commercial spaces across active metropolises.">
+  <title>Explore Properties — WONACRE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-page="listings">
+  <div id="site-header"></div>
+  <main>
+    <section class="page-hero listings-hero">
+      <div class="container">
+        <span class="eyebrow light">Active Portfolio</span>
+        <h1>Find a space that <em>fits.</em></h1>
+        <p class="lead">Refine by metropolis, purpose, budget, and architectural layout. Click any listing to unlock complete floor plans and photo galleries.</p>
+      </div>
+    </section>
+
+    <section class="section container catalogue" aria-label="Property search and results">
+      <div class="catalogue-toolbar">
+        <div class="segmented" role="group" aria-label="Property purpose">
+          <button type="button" data-filter-intent="all">All</button>
+          <button type="button" data-filter-intent="buy">Buy</button>
+          <button type="button" data-filter-intent="rent">Rent</button>
+          <button type="button" data-filter-intent="commercial">Commercial</button>
+        </div>
+        <button id="reset-filters" class="quiet-button" type="button">Reset filters ↺</button>
+      </div>
+
+      <div class="catalogue-body">
+        <aside class="filter-panel">
+          <div class="filter-title">
+            <h2>Refine your search</h2>
+            <span>Specifications</span>
+          </div>
+          <label>Metropolis
+            <select id="filter-city">
+              <option value="">All Metropolises</option>
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Mumbai">Mumbai</option>
+              <option value="Gurgaon">Gurgaon</option>
+            </select>
+          </label>
+          <label>Location / Micro-market
+            <select id="filter-locality">
+              <option value="">All locations</option>
+            </select>
+          </label>
+          <label>Property type
+            <select id="filter-type">
+              <option value="">All types</option>
+            </select>
+          </label>
+          <label>Budget
+            <select id="filter-budget">
+              <option value="">Any budget</option>
+            </select>
+          </label>
+          <p class="filter-note">Clicking any property card requires login to view high-resolution photography and verified floor plans.</p>
+        </aside>
+
+        <div class="catalogue-results">
+          <div class="results-heading">
+            <div>
+              <span class="eyebrow">Available Spaces</span>
+              <h2 id="results-title">Explore properties</h2>
+              <p id="results-count" aria-live="polite"></p>
+            </div>
+            <label>Sort by
+              <select id="filter-sort">
+                <option value="default">Featured first</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="listing-grid" class="card-grid"></div>
+
+          <div id="listing-empty" class="empty-state" hidden>
+            <span aria-hidden="true">⌕</span>
+            <h3>No matching spaces found</h3>
+            <p>Try clearing filters or switching your metropolis to discover more options.</p>
+            <button type="button" class="button button-gold" id="empty-reset">Clear all filters</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing-cta">
+      <div class="container closing-grid">
+        <div>
+          <span class="eyebrow light">Describe it instead</span>
+          <h2>Know what you need, but not where to start?</h2>
+        </div>
+        <div>
+          <button class="button button-gold" data-open-chat type="button">Consult WONACRE AI Bot ✦</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <div id="chat-root"></div>
+  <div id="modal-root"></div>
+</body>
+</html>

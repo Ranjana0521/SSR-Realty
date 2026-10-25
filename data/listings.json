@@ -1,34 +1,505 @@
 [
   {
-    "id": "lakeview-residences", "title": "Lakeview Residences", "city": "Bengaluru", "locality": "Whitefield", "intent": "buy", "type": "apartment", "status": "Ready to move", "config": "3 BHK", "areaSqft": 1820, "price": 18500000, "priceLabel": "₹1.85 Cr", "priceNote": "Indicative sale price", "image": "assets/hero.webp", "featured": true,
-    "summary": "An airy apartment concept with generous living spaces and everyday conveniences close at hand.", "highlights": ["East facing", "Balcony", "Covered parking"]
+    "id": "linear-house-gachibowli",
+    "title": "The Linear House at Gachibowli",
+    "city": "Hyderabad",
+    "locality": "Gachibowli",
+    "intent": "buy",
+    "type": "apartment",
+    "status": "Ready to move",
+    "config": "2 BHK",
+    "areaSqft": 1450,
+    "price": 7800000,
+    "priceLabel": "₹78 Lakh",
+    "priceNote": "Indicative sale price",
+    "image": "assets/prop-linear-exterior.jpg",
+    "gallery": [
+      "assets/prop-linear-exterior.jpg",
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-master-bedroom.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": true,
+    "summary": "Contemporary architectural haven featuring acoustic low-E glass, serene linear terraces, and quiet proximity to the financial district.",
+    "highlights": ["Acoustic Low-E glass", "Spacious terrace balcony", "East facing with open vistas", "2 covered basement parking spots"],
+    "specs": {
+      "facing": "East",
+      "floor": "9th Floor of 18",
+      "possession": "Immediate / Ready",
+      "rera": "P02400004921",
+      "maintenance": "₹3,800 / month",
+      "furnishing": "Semi-Furnished designer fittings"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "10.8 ft clear height",
+      "Flooring Material": "Micro-cement & smoked oak hardwood",
+      "Acoustic & Thermal Glazing": "Saint-Gobain low-E thermal acoustic glass",
+      "Covered Parking": "2 Dedicated Bays",
+      "Balconies & Terraces": "2 Private Outdoor Balconies"
+    },
+    "amenities": [
+      "Lap pool with slate stone perimeter",
+      "Residents library & reading pavilion",
+      "EV car charging bay",
+      "24/7 security with RFID gate access",
+      "Rooftop stargazing deck"
+    ]
   },
   {
-    "id": "verdant-courtyard", "title": "Verdant Courtyard", "city": "Bengaluru", "locality": "Sarjapur Road", "intent": "buy", "type": "villa", "status": "New launch", "config": "4 BHK", "areaSqft": 3400, "price": 32000000, "priceLabel": "₹3.20 Cr", "priceNote": "Indicative sale price", "image": "assets/villa.webp", "featured": true,
-    "summary": "A garden-facing villa concept designed around space, privacy and quiet outdoor moments.", "highlights": ["Private garden", "North facing", "Family lounge"]
+    "id": "lakeview-residences",
+    "title": "Lakeview Residences",
+    "city": "Bengaluru",
+    "locality": "Whitefield",
+    "intent": "buy",
+    "type": "apartment",
+    "status": "Ready to move",
+    "config": "3 BHK",
+    "areaSqft": 1820,
+    "price": 18500000,
+    "priceLabel": "₹1.85 Cr",
+    "priceNote": "Indicative sale price",
+    "image": "assets/hero.webp",
+    "gallery": [
+      "assets/hero.webp",
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-master-bedroom.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": true,
+    "summary": "An airy apartment concept with generous living spaces and everyday conveniences close at hand.",
+    "highlights": ["East facing", "Panoramic lake view balcony", "Covered parking", "Infinity pool access"],
+    "specs": {
+      "facing": "East",
+      "floor": "14th Floor",
+      "possession": "Ready to move",
+      "rera": "PRM/KA/RERA/1251/446/PR/171015",
+      "maintenance": "₹5,200 / month",
+      "furnishing": "Unfurnished"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "11.2 ft clear height",
+      "Flooring Material": "Italian Statuario Marble & Teak Plank",
+      "Acoustic & Thermal Glazing": "Schüco triple-glazed acoustic curtain wall",
+      "Covered Parking": "2 Dedicated Podium Bays",
+      "Balconies & Terraces": "Wraparound Lakeview Deck"
+    },
+    "amenities": [
+      "Infinity edge pool facing Varthur lake",
+      "Sky lounge & private banquet",
+      "High speed electric vehicle charging",
+      "Biometric access with 24/7 security",
+      "Temperature controlled squash court"
+    ]
   },
   {
-    "id": "the-grove", "title": "The Grove", "city": "Bengaluru", "locality": "HSR Layout", "intent": "rent", "type": "apartment", "status": "For rent", "config": "2 BHK", "areaSqft": 1250, "price": 42000, "priceLabel": "₹42,000 / mo", "priceNote": "Indicative monthly rent", "image": "assets/apartment.webp", "featured": true,
-    "summary": "A bright, furnished apartment concept with a relaxed layout for city living.", "highlights": ["Furnished", "Balcony", "East facing"]
+    "id": "verdant-courtyard",
+    "title": "Verdant Courtyard",
+    "city": "Bengaluru",
+    "locality": "Sarjapur Road",
+    "intent": "buy",
+    "type": "villa",
+    "status": "New launch",
+    "config": "4 BHK",
+    "areaSqft": 3400,
+    "price": 32000000,
+    "priceLabel": "₹3.20 Cr",
+    "priceNote": "Indicative sale price",
+    "image": "assets/villa.webp",
+    "gallery": [
+      "assets/villa.webp",
+      "assets/prop-linear-exterior.jpg",
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": true,
+    "summary": "A garden-facing villa concept designed around space, privacy and quiet outdoor moments.",
+    "highlights": ["Private landscaped garden", "North facing", "Double height family lounge", "Solar powered grid"],
+    "specs": {
+      "facing": "North",
+      "floor": "G + 2 Independent Villa",
+      "possession": "Dec 2026",
+      "rera": "PRM/KA/RERA/1251/308/PR/201201",
+      "maintenance": "₹7,500 / month",
+      "furnishing": "Bare Shell with luxury provisions"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "12.0 ft double-height living void",
+      "Flooring Material": "Engineered walnut & fluted limestone",
+      "Acoustic & Thermal Glazing": "Reynaers aluminium thermal-break glazing",
+      "Covered Parking": "3 Private Garage Bays",
+      "Balconies & Terraces": "Internal zen courtyard & terrace deck"
+    },
+    "amenities": [
+      "Private plunge pool and landscaped lawn",
+      "Gated community clubhouse & spa",
+      "Solar rooftop hybrid power system",
+      "Concierge and valet parking service",
+      "Children organic sensory play area"
+    ]
   },
   {
-    "id": "palm-courts", "title": "Palm Courts Resale", "city": "Bengaluru", "locality": "Varthur", "intent": "buy", "type": "apartment", "status": "Ready to move", "config": "2 BHK", "areaSqft": 1180, "price": 12500000, "priceLabel": "₹1.25 Cr", "priceNote": "Indicative sale price", "image": "assets/apartment.webp", "featured": false,
-    "summary": "A practical home concept with open living areas and a calm residential setting.", "highlights": ["West facing", "Parking", "Open kitchen"]
+    "id": "the-grove",
+    "title": "The Grove",
+    "city": "Bengaluru",
+    "locality": "HSR Layout",
+    "intent": "rent",
+    "type": "apartment",
+    "status": "For rent",
+    "config": "2 BHK",
+    "areaSqft": 1250,
+    "price": 42000,
+    "priceLabel": "₹42,000 / mo",
+    "priceNote": "Indicative monthly rent",
+    "image": "assets/apartment.webp",
+    "gallery": [
+      "assets/apartment.webp",
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-master-bedroom.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": true,
+    "summary": "A bright, furnished apartment concept with a relaxed layout for city living.",
+    "highlights": ["Fully Furnished", "Deck balcony", "East facing", "High speed fiber ready"],
+    "specs": {
+      "facing": "East",
+      "floor": "4th Floor",
+      "possession": "Immediate",
+      "rera": "Exempt (Occupancy Received)",
+      "maintenance": "Included in rent",
+      "furnishing": "Fully Furnished"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "10.0 ft standard ceiling",
+      "Flooring Material": "Vitrified matte ceramic & oak vinyl",
+      "Acoustic & Thermal Glazing": "Double-glazed acoustic sound insulation",
+      "Covered Parking": "1 Dedicated Basement Bay",
+      "Balconies & Terraces": "1 Shaded Garden Balcony"
+    },
+    "amenities": [
+      "Rooftop co-working terrace lounge",
+      "Equipped gym & wellness studio",
+      "Fiber optic connectivity hub",
+      "24/7 CCTV & smart video intercom",
+      "Covered bicycle parking bay"
+    ]
   },
   {
-    "id": "lakeside-heights", "title": "Lakeside Heights", "city": "Bengaluru", "locality": "Whitefield", "intent": "rent", "type": "apartment", "status": "For rent", "config": "3 BHK", "areaSqft": 1650, "price": 55000, "priceLabel": "₹55,000 / mo", "priceNote": "Indicative monthly rent", "image": "assets/hero.webp", "featured": false,
-    "summary": "A spacious rental apartment concept with room to work, unwind and host.", "highlights": ["Semi-furnished", "North-east facing", "Balcony"]
+    "id": "mumbai-worli-skyline",
+    "title": "Worli Waterfront Suite",
+    "city": "Mumbai",
+    "locality": "Worli",
+    "intent": "buy",
+    "type": "apartment",
+    "status": "Ready to move",
+    "config": "3 BHK",
+    "areaSqft": 2150,
+    "price": 49000000,
+    "priceLabel": "₹4.90 Cr",
+    "priceNote": "Indicative sale price",
+    "image": "assets/prop-luxury-living.jpg",
+    "gallery": [
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-linear-exterior.jpg",
+      "assets/prop-master-bedroom.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": true,
+    "summary": "Unrivalled Arabian Sea vistas paired with floor-to-ceiling glass architecture and private elevator vestibule.",
+    "highlights": ["Direct sea views", "Concierge reception", "Private elevator lobby", "Acoustic insulated glazing"],
+    "specs": {
+      "facing": "West (Sea Facing)",
+      "floor": "28th Floor",
+      "possession": "Ready to move",
+      "rera": "P51900008432",
+      "maintenance": "₹12,000 / month",
+      "furnishing": "Designer Italian Kitchen"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "11.5 ft panoramic ceiling",
+      "Flooring Material": "Botticino Italian Marble & brushed brass trims",
+      "Acoustic & Thermal Glazing": "Hurricane-rated Low-E marine acoustic glass",
+      "Covered Parking": "2 Automated Multi-level Bays",
+      "Balconies & Terraces": "Seafront cantilevered sky deck"
+    },
+    "amenities": [
+      "Private elevator with secure retinal scanner",
+      "Heated indoor lap pool & steam room",
+      "24/7 bespoke international concierge",
+      "Cigar lounge & temperature wine cellar",
+      "Helipad access and chauffeur waiting lounge"
+    ]
   },
   {
-    "id": "indiranagar-high-street", "title": "Indiranagar High-Street", "city": "Bengaluru", "locality": "Indiranagar", "intent": "commercial", "type": "retail", "status": "Available", "config": "Retail", "areaSqft": 850, "price": 180000, "priceLabel": "₹1.80 L / mo", "priceNote": "Indicative monthly rent", "image": "assets/office.webp", "featured": false,
-    "summary": "An illustrative street-facing retail space for a brand seeking a prominent address.", "highlights": ["Main road", "Warm shell", "Street frontage"]
+    "id": "gurgaon-golf-estate",
+    "title": "The Golf Reserve Pavilion",
+    "city": "Gurgaon",
+    "locality": "Golf Course Ext.",
+    "intent": "buy",
+    "type": "apartment",
+    "status": "Ready to move",
+    "config": "4 BHK",
+    "areaSqft": 3100,
+    "price": 38500000,
+    "priceLabel": "₹3.85 Cr",
+    "priceNote": "Indicative sale price",
+    "image": "assets/prop-master-bedroom.jpg",
+    "gallery": [
+      "assets/prop-master-bedroom.jpg",
+      "assets/prop-linear-exterior.jpg",
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": true,
+    "summary": "Expansive luxury sanctuary overlooking pristine greens, complete with smart home automation and wraparound deck.",
+    "highlights": ["Golf course views", "Wraparound timber deck", "Smart automation", "Triple height clubhouse"],
+    "specs": {
+      "facing": "North-East",
+      "floor": "16th Floor",
+      "possession": "Ready to move",
+      "rera": "GGM/2021/48",
+      "maintenance": "₹9,500 / month",
+      "furnishing": "Semi-Furnished"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "11.0 ft clear height",
+      "Flooring Material": "Imported Greek marble & herringbone oak",
+      "Acoustic & Thermal Glazing": "Saint-Gobain acoustic low-E glass",
+      "Covered Parking": "3 Dedicated Basement Bays",
+      "Balconies & Terraces": "Wraparound golf course viewing deck"
+    },
+    "amenities": [
+      "Championship 9-hole golf course privileges",
+      "Olympic size swimming pool & sun deck",
+      "Smart KNX automated home lighting & climate",
+      "24/7 manned security and perimeter laser sensors",
+      "Fine dining clubhouse and cigar lounge"
+    ]
   },
   {
-    "id": "orr-office-floor", "title": "Outer Ring Road Office", "city": "Bengaluru", "locality": "Bellandur", "intent": "commercial", "type": "office", "status": "Available", "config": "Office", "areaSqft": 4200, "price": 273000, "priceLabel": "₹2.73 L / mo", "priceNote": "Indicative monthly rent", "image": "assets/office.webp", "featured": false,
-    "summary": "A flexible office floor concept with scope for teams to shape their own workspace.", "highlights": ["Bare shell", "4,200 sq.ft", "Commercial address"]
+    "id": "palm-courts",
+    "title": "Palm Courts Resale",
+    "city": "Bengaluru",
+    "locality": "Varthur",
+    "intent": "buy",
+    "type": "apartment",
+    "status": "Ready to move",
+    "config": "2 BHK",
+    "areaSqft": 1180,
+    "price": 12500000,
+    "priceLabel": "₹1.25 Cr",
+    "priceNote": "Indicative sale price",
+    "image": "assets/apartment.webp",
+    "gallery": [
+      "assets/apartment.webp",
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-master-bedroom.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": false,
+    "summary": "A practical home concept with open living areas and a calm residential setting.",
+    "highlights": ["West facing", "Parking", "Open kitchen", "Children play area"],
+    "specs": {
+      "facing": "West",
+      "floor": "3rd Floor",
+      "possession": "Ready to move",
+      "rera": "PRM/KA/RERA/1251/446/PR/180210",
+      "maintenance": "₹3,400 / month",
+      "furnishing": "Semi-Furnished"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "10.0 ft clear height",
+      "Flooring Material": "Vitrified tiles & anti-skid balcony tiles",
+      "Acoustic & Thermal Glazing": "UPVC double-glazed soundproof windows",
+      "Covered Parking": "1 Dedicated Basement Bay",
+      "Balconies & Terraces": "1 Living Room Balcony"
+    },
+    "amenities": [
+      "Swimming pool with kids splash pool",
+      "Community party hall & badminton court",
+      "Power backup for all apartments",
+      "24/7 security with CCTV monitoring",
+      "Landscaped walking track"
+    ]
   },
   {
-    "id": "hosur-showroom", "title": "Hosur Road Showroom", "city": "Bengaluru", "locality": "Hosur Road", "intent": "commercial", "type": "showroom", "status": "Available", "config": "Showroom", "areaSqft": 2000, "price": 240000, "priceLabel": "₹2.40 L / mo", "priceNote": "Indicative monthly rent", "image": "assets/office.webp", "featured": false,
-    "summary": "An illustrative showroom opportunity planned for visibility and easy customer access.", "highlights": ["Main road", "Warm shell", "Display frontage"]
+    "id": "lakeside-heights",
+    "title": "Lakeside Heights",
+    "city": "Bengaluru",
+    "locality": "Whitefield",
+    "intent": "rent",
+    "type": "apartment",
+    "status": "For rent",
+    "config": "3 BHK",
+    "areaSqft": 1650,
+    "price": 55000,
+    "priceLabel": "₹55,000 / mo",
+    "priceNote": "Indicative monthly rent",
+    "image": "assets/hero.webp",
+    "gallery": [
+      "assets/hero.webp",
+      "assets/prop-luxury-living.jpg",
+      "assets/prop-master-bedroom.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": false,
+    "summary": "A spacious rental apartment concept with room to work, unwind and host.",
+    "highlights": ["Semi-furnished", "North-east facing", "Balcony", "Clubhouse with gym"],
+    "specs": {
+      "facing": "North-East",
+      "floor": "7th Floor",
+      "possession": "Immediate",
+      "rera": "Exempt",
+      "maintenance": "₹4,500 / month",
+      "furnishing": "Semi-Furnished"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "10.5 ft clear height",
+      "Flooring Material": "Imported polished vitrified slabs",
+      "Acoustic & Thermal Glazing": "Acoustic insulated aluminium sliding windows",
+      "Covered Parking": "2 Dedicated Covered Bays",
+      "Balconies & Terraces": "2 Balconies with lake cross breeze"
+    },
+    "amenities": [
+      "Clubhouse with multi-gym and table tennis",
+      "Jogging track along perimeter",
+      "24/7 security guard gate & intercom",
+      "Children playground with sandbox",
+      "Convenience grocery store on premises"
+    ]
+  },
+  {
+    "id": "indiranagar-high-street",
+    "title": "Indiranagar High-Street",
+    "city": "Bengaluru",
+    "locality": "Indiranagar",
+    "intent": "commercial",
+    "type": "retail",
+    "status": "Available",
+    "config": "Retail",
+    "areaSqft": 850,
+    "price": 180000,
+    "priceLabel": "₹1.80 L / mo",
+    "priceNote": "Indicative monthly rent",
+    "image": "assets/office.webp",
+    "gallery": [
+      "assets/office.webp",
+      "assets/prop-linear-exterior.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": false,
+    "summary": "An illustrative street-facing retail space for a brand seeking a prominent address.",
+    "highlights": ["Main road", "Warm shell", "Street frontage", "High footfall corridor"],
+    "specs": {
+      "facing": "North",
+      "floor": "Ground Floor",
+      "possession": "Immediate",
+      "rera": "Commercial",
+      "maintenance": "₹8,000 / month",
+      "furnishing": "Warm Shell"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "14.0 ft retail display height",
+      "Flooring Material": "Polished industrial concrete screed",
+      "Acoustic & Thermal Glazing": "Toughened frameless glass display facade",
+      "Covered Parking": "2 Front Customer Bays",
+      "Balconies & Terraces": "Wide pedestrian storefront"
+    },
+    "amenities": [
+      "Prominent high footfall frontage",
+      "3-phase commercial power connection",
+      "24/7 water supply & dedicated washrooms",
+      "Loading and unloading service lane",
+      "Prominent architectural signage rights"
+    ]
+  },
+  {
+    "id": "orr-office-floor",
+    "title": "Outer Ring Road Office",
+    "city": "Bengaluru",
+    "locality": "Bellandur",
+    "intent": "commercial",
+    "type": "office",
+    "status": "Available",
+    "config": "Office",
+    "areaSqft": 4200,
+    "price": 273000,
+    "priceLabel": "₹2.73 L / mo",
+    "priceNote": "Indicative monthly rent",
+    "image": "assets/office.webp",
+    "gallery": [
+      "assets/office.webp",
+      "assets/prop-linear-exterior.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": false,
+    "summary": "A flexible office floor concept with scope for teams to shape their own workspace.",
+    "highlights": ["Bare shell", "4,200 sq.ft", "Commercial address", "10 dedicated parking slots"],
+    "specs": {
+      "facing": "East",
+      "floor": "5th Floor",
+      "possession": "Immediate",
+      "rera": "Commercial Grade A",
+      "maintenance": "₹18 / sq.ft",
+      "furnishing": "Bare Shell"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "12.5 ft slab-to-slab clearance",
+      "Flooring Material": "Raised access flooring ready for cabling",
+      "Acoustic & Thermal Glazing": "Double glazed DGU acoustic thermal glass",
+      "Covered Parking": "10 Reserved Basement Bays",
+      "Balconies & Terraces": "Private executive balcony"
+    },
+    "amenities": [
+      "100% DG power backup & dual feed substation",
+      "High-speed destination-controlled passenger elevators",
+      "Centralized HVAC chiller connection",
+      "Grade A LEED Gold green building certified",
+      "Cafeteria and conference auditorium facilities"
+    ]
+  },
+  {
+    "id": "hosur-showroom",
+    "title": "Hosur Road Showroom",
+    "city": "Bengaluru",
+    "locality": "Hosur Road",
+    "intent": "commercial",
+    "type": "showroom",
+    "status": "Available",
+    "config": "Showroom",
+    "areaSqft": 2000,
+    "price": 240000,
+    "priceLabel": "₹2.40 L / mo",
+    "priceNote": "Indicative monthly rent",
+    "image": "assets/office.webp",
+    "gallery": [
+      "assets/office.webp",
+      "assets/prop-linear-exterior.jpg",
+      "assets/prop-floor-plan.jpg"
+    ],
+    "featured": false,
+    "summary": "An illustrative showroom opportunity planned for visibility and easy customer access.",
+    "highlights": ["Main road", "Warm shell", "Display frontage", "High vehicular visibility"],
+    "specs": {
+      "facing": "West",
+      "floor": "Ground + Mezzanine",
+      "possession": "Immediate",
+      "rera": "Commercial",
+      "maintenance": "₹12,000 / month",
+      "furnishing": "Warm Shell"
+    },
+    "technicalSpecs": {
+      "Ceiling Height": "18.0 ft double height showroom void",
+      "Flooring Material": "Heavy duty vitrified porcelain tiles",
+      "Acoustic & Thermal Glazing": "Floor to ceiling acoustic display glazing",
+      "Covered Parking": "6 Customer Front Parking Bays",
+      "Balconies & Terraces": "Prominent display mezzanine"
+    },
+    "amenities": [
+      "Direct national highway visibility & access",
+      "Dedicated mezzanine floor for back-office",
+      "High capacity goods freight elevator",
+      "Fire safety sprinkler and hydrants installed",
+      "Wide vehicle delivery ramp"
+    ]
   }
 ]
