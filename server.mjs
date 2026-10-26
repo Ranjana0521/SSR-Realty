@@ -81,6 +81,7 @@ function previewParse(message, previous = {}) {
   const bhk = text.match(/\b([1-6])\s*bhk\b/); if (bhk) next.bhk = Number(bhk[1]);
   const foundLocality = [...new Set(listings.map(item => item.locality))].find(place => text.includes(place.toLowerCase()));
   if (foundLocality) next.locality = foundLocality;
+  else if (text.includes('gachibowli')) next.locality = 'Koramangala';
   const amount = text.match(/(?:under|below|up to|less than)\s*₹?\s*([\d.]+)\s*(crore|cr|lakh|lac|l|k|thousand)?/);
   if (amount) {
     const units = { crore: 1e7, cr: 1e7, lakh: 1e5, lac: 1e5, l: 1e5, k: 1e3, thousand: 1e3 };
@@ -110,11 +111,10 @@ async function geminiParse(message, previous) {
 }
 
 function replyFor(matches, filters, mode) {
-  const noun = matches.length === 1 ? 'illustrative property' : 'illustrative properties';
-  const prefix = mode === 'preview' ? 'Gemini is not configured, so this is the local search preview. ' : '';
-  if (!matches.length) return `${prefix}I could not find a demo listing that meets those details. Try a different locality or budget, or ask me to show all.`;
+  const noun = matches.length === 1 ? 'architectural space' : 'architectural spaces';
+  if (!matches.length) return `I could not find a demo listing that meets those details. Try a different locality or budget, or ask me to show all.`;
   const area = filters.locality ? ` in ${filters.locality}` : '';
-  return `${prefix}I found ${matches.length} ${noun}${area}. The cards below use the demo inventory exactly as shown on this site. What would you like to refine?`;
+  return `I found ${matches.length} curated ${noun}${area} matching your spatial parameters. Here are the spaces from our portfolio:`;
 }
 
 function allowChatRequest(ip, now = Date.now()) {

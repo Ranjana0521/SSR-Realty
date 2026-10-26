@@ -27,6 +27,41 @@
           </div>
           <h1 id="hero-title">Where thoughtful design<br>meets the space you<br><em>call home.</em></h1>
           <p class="hero-lead-text">Discover residences and workspaces crafted with purpose, proportion, and quiet clarity through conversational spatial intelligence.</p>
+
+          <!-- Spatial Search Console (as shown in user photo) -->
+          <div class="spatial-search-box">
+            <div class="spatial-search-tabs">
+              <button type="button" class="spatial-tab-btn selected" data-hero-intent="buy" id="hero-tab-buy">Acquisition (Buy)</button>
+              <button type="button" class="spatial-tab-btn" data-hero-intent="rent" id="hero-tab-rent">Long Lease (Rent)</button>
+              <select id="hero-city-select" class="spatial-tab-select" aria-label="Target Location">
+                <option value="Bengaluru" selected>Bengaluru (All)</option>
+                <option value="Whitefield">Whitefield</option>
+                <option value="Indiranagar">Indiranagar</option>
+                <option value="Koramangala">Koramangala</option>
+                <option value="HSR Layout">HSR Layout</option>
+                <option value="Bellandur">Bellandur</option>
+                <option value="Sarjapur Road">Sarjapur Road</option>
+                <option value="Electronic City">Electronic City</option>
+                <option value="Hebbal">Hebbal</option>
+                <option value="Yelahanka">Yelahanka</option>
+              </select>
+              <select id="hero-budget-select" class="spatial-tab-select" aria-label="Target Budget">
+                <option value="8000000">Under ₹80 Lakh</option>
+                <option value="15000000" selected>Under ₹1.5 Cr</option>
+                <option value="35000000">Under ₹3.5 Cr</option>
+                <option value="">Any budget</option>
+              </select>
+            </div>
+            <form id="hero-spatial-form" class="spatial-input-row">
+              <input id="hero-spatial-input" class="spatial-prompt-input" type="text" placeholder="A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony." value="A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony." aria-label="Describe your home">
+            </form>
+            <div class="spatial-search-bottom">
+              <div class="spatial-model-badge">
+                <span>✦</span> NATURAL LANGUAGE SPATIAL MODEL
+              </div>
+              <button id="hero-consult-btn" type="button" class="consult-submit-btn">Consult WONACRE AI →</button>
+            </div>
+          </div>
         </div>
 
         <!-- Featured Monograph Card (from user photo) -->
@@ -51,6 +86,19 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- Spatial Intelligence Results (Dynamically populated on search) -->
+    <section id="spatial-results-section" class="section container" hidden aria-labelledby="spatial-results-title">
+      <div class="section-top">
+        <div>
+          <span class="eyebrow">Spatial Intelligence Matches</span>
+          <h2 id="spatial-results-title">Curated Architectural Results</h2>
+        </div>
+        <button type="button" class="text-link" id="clear-spatial-results-btn">Clear search ✕</button>
+      </div>
+      <p id="spatial-results-summary" class="lead" style="font-size: 0.95rem; color: #cbd5e1; margin-bottom: 24px;"></p>
+      <div id="spatial-results-grid" class="card-grid"></div>
     </section>
 
     <!-- Secondary Filter Bar -->

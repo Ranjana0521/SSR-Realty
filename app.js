@@ -253,17 +253,21 @@ function renderShell() {
     <button id="chat-launcher" class="chat-launcher" type="button" aria-label="Open WONACRE AI Spatial Chat" aria-expanded="false">
       <img src="assets/bot-face.png" alt="Chat Bot" class="launcher-sticker-bot">
     </button>
-    <section id="chat-panel" class="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" hidden>
+    <div id="chat-backdrop" class="chat-backdrop" hidden></div>
+    <section id="chat-panel" class="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chat-title" hidden>
       <header class="chat-head">
         <div class="chat-avatar">
           <img src="assets/bot-face.png" alt="WONACRE Spatial AI" class="chat-avatar-img">
           <span class="avatar-online-dot"></span>
         </div>
-        <div>
+        <div class="chat-head-titles">
           <strong id="chat-title">WONACRE Spatial AI</strong>
           <span id="chat-mode">Bengaluru Metropolis Spatial Model</span>
         </div>
-        <button id="chat-close" type="button" aria-label="Close Assistant">×</button>
+        <div class="chat-head-tools">
+          <button id="chat-expand-toggle" type="button" class="chat-head-btn" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">⛶</button>
+          <button id="chat-close" type="button" class="chat-head-btn" aria-label="Close Assistant">✕</button>
+        </div>
       </header>
       <div id="chat-messages" class="chat-messages" aria-live="polite">
         <div class="chat-message bot">
@@ -481,12 +485,26 @@ function setupShellEventListeners() {
     btn.addEventListener('click', () => setActiveCity(btn.dataset.switchCity));
   });
 
-  // Chatbot Open/Close
+  // Chatbot Open/Close & Controls
   document.querySelectorAll('[data-open-chat], #chat-launcher').forEach(button => {
     button.addEventListener('click', () => setChatOpen(true));
   });
   const chatClose = document.querySelector('#chat-close');
   if (chatClose) chatClose.addEventListener('click', () => setChatOpen(false));
+
+  const chatBackdrop = document.querySelector('#chat-backdrop');
+  if (chatBackdrop) chatBackdrop.addEventListener('click', () => setChatOpen(false));
+
+  const chatExpandBtn = document.querySelector('#chat-expand-toggle');
+  if (chatExpandBtn) {
+    chatExpandBtn.addEventListener('click', () => {
+      const panel = document.querySelector('#chat-panel');
+      if (panel) {
+        panel.classList.toggle('chat-fullscreen');
+        chatExpandBtn.textContent = panel.classList.contains('chat-fullscreen') ? '🗗' : '⛶';
+      }
+    });
+  }
 
   // Escape key closes modals and chat
   document.addEventListener('keydown', event => {
@@ -986,6 +1004,135 @@ function setupHome() {
     });
   }
 
+  // Hero Spatial Search Console Interactions
+  const heroCitySelect = document.querySelector('#hero-city-select');
+  const heroBudgetSelect = document.querySelector('#hero-budget-select');
+  const heroTabs = document.querySelectorAll('[data-hero-intent]');
+  const heroForm = document.querySelector('#hero-spatial-form');
+  const heroInput = document.querySelector('#hero-spatial-input');
+  const heroConsultBtn = document.querySelector('#hero-consult-btn');
+
+  let heroIntent = 'buy';
+
+  if (heroCitySelect) {
+    if (activeCity && [...heroCitySelect.options].some(o => o.value === activeCity)) {
+      heroCitySelect.value = activeCity;
+    }
+    heroCitySelect.addEventListener('change', () => {
+      if (heroCitySelect.value !== 'Bengaluru') {
+        setActiveCity(heroCitySelect.value);
+      }
+    });
+  }
+
+  const buyBudgets = `
+    <option value="8000000">Under ₹80 Lakh</option>
+    <option value="15000000" selected>Under ₹1.5 Cr</option>
+    <option value="35000000">Under ₹3.5 Cr</option>
+    <option value="">Any budget</option>
+  `;
+
+  const rentBudgets = `
+    <option value="40000">Under ₹40,000 / mo</option>
+    <option value="75000" selected>Under ₹75,000 / mo</option>
+    <option value="150000">Under ₹1.5 Lakh / mo</option>
+    <option value="">Any budget</option>
+  `;
+
+  heroTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      heroTabs.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      heroIntent = btn.dataset.heroIntent;
+      if (heroBudgetSelect) {
+        heroBudgetSelect.innerHTML = heroIntent === 'rent' ? rentBudgets : buyBudgets;
+      }
+    });
+  });
+
+  function performSpatialSearch() {
+    const rawQuery = heroInput ? heroInput.value.trim() : '';
+    const query = rawQuery || 'A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony.';
+
+    const localityVal = heroCitySelect && heroCitySelect.value !== 'Bengaluru' ? heroCitySelect.value : null;
+    const budgetVal = heroBudgetSelect && heroBudgetSelect.value ? Number(heroBudgetSelect.value) : null;
+
+    // Client-side spatial filtering for immediate display on Discover page
+    const textLower = query.toLowerCase();
+    const bhkMatch = textLower.match(/\b([1-6])\s*bhk\b/);
+    const targetBhk = bhkMatch ? Number(bhkMatch[1]) : null;
+
+    let parsedMaxPrice = budgetVal;
+    const priceMatch = textLower.match(/(?:under|below|up to|less than)\s*₹?\s*([\d.]+)\s*(crore|cr|lakh|lac|l|k|thousand)?/);
+    if (priceMatch) {
+      const units = { crore: 1e7, cr: 1e7, lakh: 1e5, lac: 1e5, l: 1e5, k: 1e3, thousand: 1e3 };
+      parsedMaxPrice = Math.round(Number(priceMatch[1]) * (units[priceMatch[2]] || 1));
+    }
+
+    let searchLocality = localityVal;
+    if (!searchLocality) {
+      if (textLower.includes('gachibowli')) searchLocality = 'Koramangala';
+      else {
+        const found = METROPOLISES.find(m => textLower.includes(m.name.toLowerCase()));
+        if (found) searchLocality = found.name;
+      }
+    }
+
+    let matches = listings.filter(item => {
+      if (heroIntent && item.intent !== heroIntent) return false;
+      if (searchLocality && !item.locality.toLowerCase().includes(searchLocality.toLowerCase()) && item.locality.toLowerCase() !== searchLocality.toLowerCase()) return false;
+      if (targetBhk && !item.config.startsWith(`${targetBhk} BHK`)) return false;
+      if (parsedMaxPrice && item.price > parsedMaxPrice) return false;
+      return true;
+    });
+
+    // Fallback if strictly filtered
+    if (!matches.length) {
+      matches = listings.filter(item => {
+        if (heroIntent && item.intent !== heroIntent) return false;
+        if (parsedMaxPrice && item.price > parsedMaxPrice * 1.3) return false;
+        return true;
+      }).slice(0, 3);
+    }
+
+    // Render into Discover page #spatial-results-section
+    const resultsSec = document.querySelector('#spatial-results-section');
+    const resultsGrid = document.querySelector('#spatial-results-grid');
+    const resultsSummary = document.querySelector('#spatial-results-summary');
+
+    if (resultsSec && resultsGrid) {
+      resultsSec.hidden = false;
+      if (resultsSummary) {
+        resultsSummary.innerHTML = `Showing <strong>${matches.length}</strong> architectural spaces matching <em>"${escapeHtml(query)}"</em> (${heroIntent === 'buy' ? 'Acquisition' : 'Long Lease'}${searchLocality ? ' · ' + escapeHtml(searchLocality) : ''}${parsedMaxPrice ? ' · Under ' + (parsedMaxPrice >= 1e7 ? '₹' + (parsedMaxPrice / 1e7) + ' Cr' : '₹' + (parsedMaxPrice / 1e5) + ' Lakh') : ''}):`;
+      }
+      resultsGrid.innerHTML = matches.map(item => card(item)).join('');
+      attachCardClickListeners(resultsGrid);
+      resultsSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    const clearBtn = document.querySelector('#clear-spatial-results-btn');
+    if (clearBtn) {
+      clearBtn.onclick = () => {
+        if (resultsSec) resultsSec.hidden = true;
+      };
+    }
+
+    // Open WONACRE AI assistant and pass query + filters
+    setChatOpen(true);
+    if (window.sendChatMessage) {
+      chatFilters = {
+        intent: heroIntent,
+        locality: searchLocality,
+        maxPrice: parsedMaxPrice,
+        bhk: targetBhk
+      };
+      window.sendChatMessage(query);
+    }
+  }
+
+  if (heroForm) heroForm.addEventListener('submit', (e) => { e.preventDefault(); performSpatialSearch(); });
+  if (heroConsultBtn) heroConsultBtn.addEventListener('click', performSpatialSearch);
+
   // Render Featured Grid
   renderFeaturedGrid();
 
@@ -1431,13 +1578,18 @@ function setupContact() {
 
 function setChatOpen(open) {
   const panel = document.querySelector('#chat-panel');
+  const backdrop = document.querySelector('#chat-backdrop');
   if (!panel) return;
   panel.hidden = !open;
+  if (backdrop) backdrop.hidden = !open;
   const launcher = document.querySelector('#chat-launcher');
   if (launcher) launcher.setAttribute('aria-expanded', String(open));
   if (open) {
+    document.body.classList.add('chat-modal-open');
     const input = document.querySelector('#chat-input');
     if (input) input.focus();
+  } else {
+    document.body.classList.remove('chat-modal-open');
   }
 }
 
@@ -1471,33 +1623,7 @@ function setupChat() {
     addChatMessage(clean, 'user');
     input.value = '';
 
-    // Requirement 3: If user asks anything about any property in chatbot, require Mobile & OTP sign in!
     const user = getAuthUser();
-    if (!user) {
-      pendingChatQuery = clean;
-      const gateMsg = addChatMessage('', 'bot');
-      gateMsg.innerHTML = `
-        <div class="chat-auth-card">
-          <span class="chat-auth-badge">Mobile Verification Required</span>
-          <h4 style="margin:0 0 4px; font-size:0.95rem; color:#fff;">Sign In to Inquire About Properties</h4>
-          <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 12px; line-height:1.4;">
-            To access property blueprints, spatial specifications, and request official dossiers, please sign in with your mobile number and OTP.
-          </p>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button type="button" class="button button-gold" style="padding:7px 16px; font-size:0.82rem;" id="chat-login-action-btn">
-              Sign In with Mobile & OTP →
-            </button>
-          </div>
-        </div>
-      `;
-
-      gateMsg.querySelector('#chat-login-action-btn').addEventListener('click', () => {
-        openAuthModal();
-      });
-
-      gateMsg.scrollIntoView({ block: 'end', behavior: 'smooth' });
-      return;
-    }
 
     input.disabled = true;
     form.querySelector('button').disabled = true;
@@ -1593,8 +1719,8 @@ function setupChat() {
 
             <form class="chat-viewing-form">
               <div class="chat-brochure-inputs">
-                <input type="text" name="name" placeholder="Your Full Name" value="${escapeHtml(user.name || '')}" required>
-                <input type="tel" name="phone" placeholder="Phone or WhatsApp Number" value="${escapeHtml(user.phone || '')}" required>
+                <input type="text" name="name" placeholder="Your Full Name" value="${escapeHtml(user?.name || '')}" required>
+                <input type="tel" name="phone" placeholder="Phone or WhatsApp Number" value="${escapeHtml(user?.phone || '')}" required>
                 <button type="submit" class="viewing-submit-btn" style="height: 38px; font-size: 0.78rem;">
                   Confirm Viewing & Send Brochure
                 </button>
@@ -1606,8 +1732,8 @@ function setupChat() {
           </div>
         `;
 
-        cardEl.querySelector('#chat-open-dossier-btn').addEventListener('click', () => {
-          showPropertyModal(topItem);
+        cardEl.querySelector('#chat-open-dossier-btn').addEventListener('click', (e) => {
+          handlePropertyClick(e, topItem.id);
         });
 
         const vForm = cardEl.querySelector('.chat-viewing-form');
