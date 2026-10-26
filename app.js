@@ -1052,7 +1052,8 @@ function setupHome() {
 
   function performSpatialSearch() {
     const rawQuery = heroInput ? heroInput.value.trim() : '';
-    const query = rawQuery || 'A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony.';
+    const activeCityName = heroCitySelect && heroCitySelect.value ? heroCitySelect.value : 'Bengaluru';
+    const query = rawQuery || `${heroIntent === 'rent' ? 'Rental' : 'Residential'} properties in ${activeCityName}`;
 
     const localityVal = heroCitySelect && heroCitySelect.value !== 'Bengaluru' ? heroCitySelect.value : null;
     const budgetVal = heroBudgetSelect && heroBudgetSelect.value ? Number(heroBudgetSelect.value) : null;
