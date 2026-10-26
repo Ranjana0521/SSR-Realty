@@ -718,6 +718,10 @@ h3 {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
+.hero-copy-block .hero-lead-text:last-child {
+  margin-bottom: 0;
+}
+
 /* Spatial AI Search Box (Translucent Glassmorphism) */
 .spatial-search-box {
   background: rgba(18, 23, 32, 0.78);

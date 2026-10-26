@@ -313,24 +313,24 @@ function renderShell() {
 
         <form id="auth-form" class="auth-form">
           <label for="auth-name">Your Name
-            <input type="text" id="auth-name" name="name" required placeholder="Enter your full name" autocomplete="name" value="Alex Morgan">
+            <input type="text" id="auth-name" name="name" required placeholder="Enter your full name" autocomplete="name" value="">
           </label>
 
           <label for="auth-phone">Mobile Number
             <div class="auth-phone-row">
               <span class="auth-phone-prefix">+91</span>
-              <input type="tel" id="auth-phone" name="phone" required placeholder="Enter 10-digit mobile" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" value="9876543210">
+              <input type="tel" id="auth-phone" name="phone" required placeholder="Enter 10-digit mobile" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" value="">
               <button type="button" class="auth-send-otp-btn" id="auth-send-otp-btn">Send OTP</button>
             </div>
           </label>
 
-          <div id="auth-otp-notice" class="auth-otp-notice">
+          <div id="auth-otp-notice" class="auth-otp-notice" hidden>
             <span class="otp-pulse-dot"></span>
-            <span id="auth-otp-notice-text">OTP sent to your number: <strong>1234</strong></span>
+            <span id="auth-otp-notice-text"></span>
           </div>
 
           <label for="auth-otp">One-Time Password (OTP)
-            <input type="text" id="auth-otp" name="otp" required placeholder="Enter 4-digit OTP" maxlength="6" autocomplete="one-time-code" value="1234">
+            <input type="text" id="auth-otp" name="otp" required placeholder="Enter 4-digit OTP" maxlength="6" autocomplete="one-time-code" value="">
           </label>
 
           <button type="submit" class="auth-submit-btn" id="auth-submit-btn">Verify OTP & Unlock</button>
@@ -613,13 +613,13 @@ function updateAuthUI() {
   const user = getAuthUser();
 
   if (user) {
-    const displayName = (user.name && !user.name.startsWith('+91')) ? user.name : 'Alex Morgan';
+    const displayName = (user.name && user.name.trim() && !user.name.startsWith('+91')) ? user.name.trim() : 'Alex Morgan';
     const initial = displayName.charAt(0).toUpperCase();
     slot.innerHTML = `
       <div class="user-profile-pill" title="Signed in as ${escapeHtml(displayName)}">
         <span class="user-avatar-circle">${escapeHtml(initial)}</span>
-        <span>${escapeHtml(displayName)}</span>
-        <button class="user-logout-btn" id="header-logout-btn" title="Sign out" type="button">✕</button>
+        <span>Hello! ${escapeHtml(displayName)}</span>
+        <button class="user-logout-btn" id="header-logout-btn" title="Sign out" type="button" aria-label="Sign out">✕</button>
       </div>
     `;
     const logoutBtn = slot.querySelector('#header-logout-btn');
@@ -653,6 +653,20 @@ function openAuthModal(propertyId = null) {
     }
   } else {
     targetInfo.hidden = true;
+  }
+
+  // Ensure modal inputs and notices are completely clean when opening
+  const nameIn = document.querySelector('#auth-name');
+  const phoneIn = document.querySelector('#auth-phone');
+  const otpIn = document.querySelector('#auth-otp');
+  const otpNotice = document.querySelector('#auth-otp-notice');
+  if (nameIn) nameIn.value = '';
+  if (phoneIn) phoneIn.value = '';
+  if (otpIn) otpIn.value = '';
+  if (otpNotice) {
+    otpNotice.hidden = true;
+    const otpNoticeText = document.querySelector('#auth-otp-notice-text');
+    if (otpNoticeText) otpNoticeText.innerHTML = '';
   }
 
   modal.hidden = false;
@@ -971,40 +985,6 @@ function setupHome() {
       handlePropertyClick(e, propId);
     });
   }
-
-  // Hero Spatial Search Interactions
-  const heroCitySelect = document.querySelector('#hero-city-select');
-  if (heroCitySelect) {
-    heroCitySelect.value = activeCity;
-    heroCitySelect.addEventListener('change', () => setActiveCity(heroCitySelect.value));
-  }
-
-  const heroTabs = document.querySelectorAll('[data-hero-intent]');
-  let heroIntent = 'buy';
-  heroTabs.forEach(btn => {
-    btn.addEventListener('click', () => {
-      heroTabs.forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      heroIntent = btn.dataset.heroIntent;
-    });
-  });
-
-  const heroForm = document.querySelector('#hero-spatial-form');
-  const heroInput = document.querySelector('#hero-spatial-input');
-  const heroConsultBtn = document.querySelector('#hero-consult-btn');
-
-  function triggerHeroConsult() {
-    const query = heroInput.value.trim() || 'A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony.';
-    setChatOpen(true);
-    const chatIn = document.querySelector('#chat-input');
-    if (chatIn) {
-      chatIn.value = query;
-      document.querySelector('#chat-form').dispatchEvent(new Event('submit'));
-    }
-  }
-
-  if (heroForm) heroForm.addEventListener('submit', (e) => { e.preventDefault(); triggerHeroConsult(); });
-  if (heroConsultBtn) heroConsultBtn.addEventListener('click', triggerHeroConsult);
 
   // Render Featured Grid
   renderFeaturedGrid();
