@@ -149,12 +149,12 @@ function renderShell() {
           </div>
         </a>
 
-        <!-- Main Nav in requested order: 1. Discover, 2. About, 3. Buy/Rent, 4. Commercial -->
+        <!-- Main Nav in requested order: 1. Discover, 2. About, 3. Domestic, 4. Commercial -->
         <nav id="main-nav" class="main-nav" aria-label="Primary navigation">
           <a href="index.html" class="nav-link ${page === 'home' ? 'active' : ''}" ${page === 'home' ? 'aria-current="page"' : ''}>Discover</a>
           <a href="about.html" class="nav-link ${page === 'about' ? 'active' : ''}" ${page === 'about' ? 'aria-current="page"' : ''}>About</a>
           <a href="listings.html" class="nav-link ${page === 'listings' && params.get('intent') !== 'commercial' ? 'active' : ''}">
-            Buy/Rent
+            Domestic
           </a>
           <a href="listings.html?intent=commercial" class="nav-link ${page === 'listings' && params.get('intent') === 'commercial' ? 'active' : ''}">
             Commercial
@@ -1136,35 +1136,38 @@ function setupHome() {
   // Render Featured Grid
   renderFeaturedGrid();
 
-  // Secondary Filter Form
-  let intent = 'buy';
-  const buttons = [...document.querySelectorAll('#home-search [data-intent]')];
-  const typeSelect = document.querySelector('#home-type');
-  const localitySelect = document.querySelector('#home-locality');
+  // Secondary Filter Form (if present)
+  const homeSearchForm = document.querySelector('#home-search');
+  if (homeSearchForm) {
+    let intent = 'buy';
+    const buttons = [...document.querySelectorAll('#home-search [data-intent]')];
+    const typeSelect = document.querySelector('#home-type');
+    const localitySelect = document.querySelector('#home-locality');
 
-  const refresh = () => {
-    buttons.forEach(button => button.classList.toggle('selected', button.dataset.intent === intent));
-    const group = listings.filter(item => item.intent === intent);
-    addOptions(localitySelect, [...new Set(group.map(item => item.locality))].sort(), 'All locations', localitySelect.value);
-    addOptions(typeSelect, [...new Set(group.map(item => item.type))].sort(), 'All types', typeSelect.value);
-  };
+    const refresh = () => {
+      buttons.forEach(button => button.classList.toggle('selected', button.dataset.intent === intent));
+      const group = listings.filter(item => item.intent === intent);
+      if (localitySelect) addOptions(localitySelect, [...new Set(group.map(item => item.locality))].sort(), 'All locations', localitySelect.value);
+      if (typeSelect) addOptions(typeSelect, [...new Set(group.map(item => item.type))].sort(), 'All types', typeSelect.value);
+    };
 
-  buttons.forEach(button => button.addEventListener('click', () => {
-    intent = button.dataset.intent;
-    localitySelect.value = '';
-    typeSelect.value = '';
+    buttons.forEach(button => button.addEventListener('click', () => {
+      intent = button.dataset.intent;
+      if (localitySelect) localitySelect.value = '';
+      if (typeSelect) typeSelect.value = '';
+      refresh();
+    }));
+
+    homeSearchForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const query = new URLSearchParams({ intent });
+      if (localitySelect && localitySelect.value) query.set('locality', localitySelect.value);
+      if (typeSelect && typeSelect.value) query.set('type', typeSelect.value);
+      location.href = `listings.html?${query}`;
+    });
+
     refresh();
-  }));
-
-  document.querySelector('#home-search').addEventListener('submit', event => {
-    event.preventDefault();
-    const query = new URLSearchParams({ intent });
-    if (localitySelect.value) query.set('locality', localitySelect.value);
-    if (typeSelect.value) query.set('type', typeSelect.value);
-    location.href = `listings.html?${query}`;
-  });
-
-  refresh();
+  }
 }
 
 function renderFeaturedGrid() {
