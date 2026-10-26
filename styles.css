@@ -145,21 +145,7 @@ h3 {
    ========================================================= */
 
 .announcement {
-  height: 30px;
-  background: #06080a;
-  color: #8391a3;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 max(28px, calc((100vw - 1320px) / 2));
-  font-size: 0.62rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.announcement .badge-pill {
-  color: var(--gold);
+  display: none !important;
 }
 
 .site-header {
@@ -217,10 +203,7 @@ h3 {
 }
 
 .brand-sub {
-  font-size: 0.58rem;
-  letter-spacing: 0.22em;
-  color: var(--muted);
-  text-transform: uppercase;
+  display: none !important;
 }
 
 /* Nav Menu: Discover, Buy, Rent, Saved, About */
@@ -716,11 +699,9 @@ h3 {
   margin-bottom: 24px;
 }
 
-.hero-eyebrow-chip .chip-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--gold);
+.hero-eyebrow-chip .chip-dot,
+.chip-dot {
+  display: none !important;
 }
 
 .hero h1 {
@@ -1579,6 +1560,75 @@ h3 {
   border-color: var(--border-gold);
 }
 
+.auth-phone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-phone-prefix {
+  height: 44px;
+  padding: 0 12px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--gold);
+  font-weight: 600;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.auth-phone-row input {
+  flex: 1;
+}
+
+.auth-send-otp-btn {
+  height: 44px;
+  padding: 0 16px;
+  background: rgba(224, 186, 123, 0.12);
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-send-otp-btn:hover {
+  background: var(--gold);
+  color: #0c0e12;
+}
+
+.auth-otp-notice {
+  background: rgba(46, 213, 115, 0.1);
+  border: 1px solid rgba(46, 213, 115, 0.3);
+  color: #2ed573;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+.auth-otp-notice[hidden] {
+  display: none !important;
+}
+
+.otp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2ed573;
+  box-shadow: 0 0 8px #2ed573;
+}
+
 .auth-submit-btn {
   height: 46px;
   background: var(--gold);
@@ -1589,30 +1639,11 @@ h3 {
   font-weight: 700;
   margin-top: 6px;
   transition: all 0.2s;
+  cursor: pointer;
 }
 
 .auth-submit-btn:hover {
   background: #ecd19d;
-}
-
-.auth-quick-login-btn {
-  height: 44px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px dashed var(--border-light);
-  color: #ffffff;
-  border-radius: var(--radius-sm);
-  font-size: 0.82rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.auth-quick-login-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: var(--gold);
 }
 
 .auth-divider {

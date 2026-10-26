@@ -7,18 +7,30 @@ let currentModalProperty = null;
 let pendingPropertyId = null;
 
 // Metropolis database with regional descriptors
+// Bengaluru Metropolis database with micro-market hubs
 const METROPOLISES = [
-  { id: 'Hyderabad', name: 'Hyderabad', region: 'Deccan Plateau' },
-  { id: 'Mumbai', name: 'Mumbai', region: 'Coastal Plains' },
-  { id: 'Bengaluru', name: 'Bengaluru', region: 'Silicon High-Tech' },
-  { id: 'Gurgaon', name: 'Gurgaon', region: 'NCR Golf Course' }
+  { id: 'Bengaluru', name: 'Bengaluru', region: 'All Greater Bengaluru' },
+  { id: 'Whitefield', name: 'Whitefield', region: 'East IT Corridor' },
+  { id: 'Indiranagar', name: 'Indiranagar', region: 'Central Cosmopolitan' },
+  { id: 'Koramangala', name: 'Koramangala', region: 'South Innovation Hub' },
+  { id: 'HSR Layout', name: 'HSR Layout', region: 'South Residential Corridor' },
+  { id: 'Bellandur', name: 'Bellandur', region: 'Outer Ring Road Tech Hub' },
+  { id: 'Sarjapur Road', name: 'Sarjapur Road', region: 'South-East Green Enclave' },
+  { id: 'Electronic City', name: 'Electronic City', region: 'South Technology Park' },
+  { id: 'Hebbal', name: 'Hebbal', region: 'North Aerotropolis' },
+  { id: 'Yelahanka', name: 'Yelahanka', region: 'North Enclave' }
 ];
 
 // Auth Helpers
 function getAuthUser() {
   try {
     const data = localStorage.getItem('wonacre_user') || localStorage.getItem('ssr_user');
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    const user = JSON.parse(data);
+    if (user && user.name && user.name.startsWith('+91')) {
+      user.name = 'Alex Morgan';
+    }
+    return user;
   } catch {
     return null;
   }
@@ -35,9 +47,13 @@ function setAuthUser(user) {
   updateAuthUI();
 }
 
-// Active City State
+// Active City State - Only Bengaluru and regions under it
 function getActiveCity() {
-  return localStorage.getItem('wonacre_city') || localStorage.getItem('ssr_city') || 'Hyderabad';
+  const c = localStorage.getItem('wonacre_city') || localStorage.getItem('ssr_city');
+  if (c && METROPOLISES.some(m => m.name.toLowerCase() === c.toLowerCase())) {
+    return c;
+  }
+  return 'Bengaluru';
 }
 
 function setActiveCity(cityName) {
@@ -123,34 +139,29 @@ function renderShell() {
 
   // Header markup matching user's reference picture
   document.querySelector('#site-header').innerHTML = `
-    <div class="announcement">
-      <span>WONACRE // ARCHITECTURAL INTELLIGENCE</span>
-      <span>ACTIVE METROPOLIS NETWORK <span class="badge-pill">● LIVE</span></span>
-    </div>
     <header class="site-header">
       <div class="container header-inner">
         <!-- Brand Logo: WONACRE -->
-        <a class="brand" href="index.html" aria-label="WONACRE Architectural Realty">
+        <a class="brand" href="index.html" aria-label="WONACRE">
           <span class="brand-symbol">W</span>
           <div class="brand-text">
             <span class="brand-name">WONACRE</span>
-            <span class="brand-sub">ARCHITECTURAL REALTY</span>
           </div>
         </a>
 
-        <!-- Main Nav in requested order: 1. About, 2. Discover, 3. Buy, 4. Rent -->
+        <!-- Main Nav in requested order: 1. Discover, 2. About, 3. Buy/Rent, 4. Commercial -->
         <nav id="main-nav" class="main-nav" aria-label="Primary navigation">
-          <a href="about.html" class="nav-link ${page === 'about' ? 'active' : ''}" ${page === 'about' ? 'aria-current="page"' : ''}>About</a>
           <a href="index.html" class="nav-link ${page === 'home' ? 'active' : ''}" ${page === 'home' ? 'aria-current="page"' : ''}>Discover</a>
-          <a href="listings.html?intent=buy" class="nav-link nav-item-dropdown ${params.get('intent') === 'buy' ? 'active' : ''}">
-            Buy <span class="nav-arrow">▾</span>
+          <a href="about.html" class="nav-link ${page === 'about' ? 'active' : ''}" ${page === 'about' ? 'aria-current="page"' : ''}>About</a>
+          <a href="listings.html" class="nav-link ${page === 'listings' && params.get('intent') !== 'commercial' ? 'active' : ''}">
+            Buy/Rent
           </a>
-          <a href="listings.html?intent=rent" class="nav-link nav-item-dropdown ${params.get('intent') === 'rent' ? 'active' : ''}">
-            Rent <span class="nav-arrow">▾</span>
+          <a href="listings.html?intent=commercial" class="nav-link ${page === 'listings' && params.get('intent') === 'commercial' ? 'active' : ''}">
+            Commercial
           </a>
         </nav>
 
-        <!-- Right Side: Saved Collection with Save Symbol, Location Dropdown, Sign in / User, Consult AI -->
+        <!-- Right Side: Saved Collection with Save Symbol, Location Dropdown, User Profile, Consult AI -->
         <div class="header-actions">
           <!-- Saved Pill Button with Save Symbol -->
           <a href="listings.html?saved=true" class="saved-pill-btn ${params.get('saved') === 'true' ? 'active' : ''}" id="header-saved-btn" title="Saved Properties Collection" aria-label="View Saved Properties">
@@ -159,20 +170,19 @@ function renderShell() {
             <span class="nav-badge" id="saved-badge">${savedCount}</span>
           </a>
 
-          <!-- Location Dropdown Pill as shown in photo -->
+          <!-- Location Dropdown Pill for Bengaluru & micro-markets -->
           <div class="location-selector" id="location-selector">
-            <button class="location-pill-btn" id="location-pill-btn" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Select Metropolis">
+            <button class="location-pill-btn" id="location-pill-btn" type="button" aria-expanded="false" aria-haspopup="true" aria-label="Select Bengaluru Location">
               <span class="loc-dot"></span>
               <span id="active-city-label">${activeCity}</span>
               <span class="loc-arrow">▾</span>
             </button>
             <div class="location-menu" id="location-menu" hidden>
-              <div class="location-menu-title">ACTIVE METROPOLIS</div>
               <div id="location-options-container"></div>
             </div>
           </div>
 
-          <!-- Auth Button / Profile -->
+          <!-- Auth Profile Slot (Sign in button removed from header) -->
           <div id="header-auth-slot"></div>
 
           <!-- Consult AI CTA Button -->
@@ -199,7 +209,6 @@ function renderShell() {
               <span class="brand-symbol">W</span>
               <div class="brand-text">
                 <span class="brand-name">WONACRE</span>
-                <span class="brand-sub">ARCHITECTURAL REALTY</span>
               </div>
             </a>
             <p style="color: var(--ink-secondary); margin-top: 14px; max-width: 380px;">
@@ -215,11 +224,13 @@ function renderShell() {
               <a href="listings.html?intent=commercial">Commercial Floors</a>
             </div>
             <div>
-              <strong>Active Cities</strong>
-              <button type="button" data-switch-city="Hyderabad">Hyderabad</button>
-              <button type="button" data-switch-city="Mumbai">Mumbai</button>
+              <strong>Bengaluru Hubs</strong>
               <button type="button" data-switch-city="Bengaluru">Bengaluru</button>
-              <button type="button" data-switch-city="Gurgaon">Gurgaon</button>
+              <button type="button" data-switch-city="Whitefield">Whitefield</button>
+              <button type="button" data-switch-city="Indiranagar">Indiranagar</button>
+              <button type="button" data-switch-city="Koramangala">Koramangala</button>
+              <button type="button" data-switch-city="HSR Layout">HSR Layout</button>
+              <button type="button" data-switch-city="Bellandur">Bellandur</button>
             </div>
             <div>
               <strong>Connect</strong>
@@ -250,24 +261,24 @@ function renderShell() {
         </div>
         <div>
           <strong id="chat-title">WONACRE Spatial AI</strong>
-          <span id="chat-mode">Active Metropolis Spatial Model</span>
+          <span id="chat-mode">Bengaluru Metropolis Spatial Model</span>
         </div>
         <button id="chat-close" type="button" aria-label="Close Assistant">×</button>
       </header>
       <div id="chat-messages" class="chat-messages" aria-live="polite">
         <div class="chat-message bot">
-          Welcome. Tell me what matters in your next home or space—location, orientation, budget, or architectural layout.
+          Welcome to Bengaluru Spatial Discovery. Tell me what matters in your next home or workspace—locality, orientation, budget, or architectural layout.
         </div>
         <div class="chat-suggestions">
-          <button type="button">A quiet 2 BHK near Gachibowli, under ₹80 lakh, with a balcony</button>
-          <button type="button">Sea-facing apartment in Worli Mumbai</button>
-          <button type="button">Golf course villa in Gurgaon</button>
+          <button type="button">A quiet 2 BHK in Koramangala, under ₹80 lakh, with a balcony</button>
+          <button type="button">Lakefront penthouse in Hebbal Bengaluru</button>
+          <button type="button">Golf view sanctuary in Yelahanka</button>
           <button type="button">3 BHK apartment in Whitefield Bengaluru</button>
         </div>
       </div>
       <form id="chat-form" class="chat-form">
         <label class="sr-only" for="chat-input">Message Assistant</label>
-        <input id="chat-input" name="message" maxlength="500" autocomplete="off" placeholder="Ask about spaces, budgets, blueprints…" required>
+        <input id="chat-input" name="message" maxlength="500" autocomplete="off" placeholder="Ask about Bengaluru spaces, budgets, blueprints…" required>
         <button type="submit" aria-label="Send query">➤</button>
       </form>
       <p class="chat-disclaimer">Conversational Spatial Intelligence · Real-time portfolio search</p>
@@ -283,43 +294,47 @@ function renderShell() {
   }
 
   modalRoot.innerHTML = `
-    <!-- Sign In / Unlock Modal -->
+    <!-- Sign In / Unlock Modal: ONLY Mobile Number and OTP as requested -->
     <div id="auth-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
       <div class="auth-modal-card">
         <button type="button" class="modal-close-btn" id="auth-modal-close" aria-label="Close dialog">×</button>
-        <div class="auth-lock-icon">🔒</div>
+        <div class="auth-lock-icon">📱</div>
         <div class="auth-modal-head">
-          <h2 id="auth-modal-title">Sign in to Unlock Property</h2>
+          <h2 id="auth-modal-title">Sign In with Mobile</h2>
           <p id="auth-modal-desc">
-            Complete architectural blueprints, floor plans, and high-resolution photography are accessible to signed-in members.
+            Enter your 10-digit mobile number and OTP to unlock full architectural blueprints and property dossiers.
           </p>
         </div>
 
         <div id="auth-target-info" class="auth-target-pill" hidden>
           <span>✦</span>
-          <span id="auth-target-title">The Linear House at Gachibowli</span>
+          <span id="auth-target-title">The Linear House at Koramangala</span>
         </div>
-
-        <!-- 1-Click Instant Demo Login (convenient for users & reviewers!) -->
-        <button type="button" class="auth-quick-login-btn" id="quick-demo-login-btn">
-          <span>⚡</span> Quick 1-Click Guest Login (Instant Access)
-        </button>
-
-        <div class="auth-divider">or enter email</div>
 
         <form id="auth-form" class="auth-form">
-          <label>Email Address
-            <input type="email" id="auth-email" required placeholder="alex.morgan@example.com" value="alex.morgan@example.com">
+          <label for="auth-name">Your Name
+            <input type="text" id="auth-name" name="name" required placeholder="Enter your full name" autocomplete="name" value="Alex Morgan">
           </label>
-          <label>Password
-            <input type="password" id="auth-password" required placeholder="••••••••" value="wonacre2026">
-          </label>
-          <button type="submit" class="auth-submit-btn">Sign In & Unlock Dossier</button>
-        </form>
 
-        <div class="auth-switch">
-          <span>Demo account is pre-filled. Click above to unlock instantly.</span>
-        </div>
+          <label for="auth-phone">Mobile Number
+            <div class="auth-phone-row">
+              <span class="auth-phone-prefix">+91</span>
+              <input type="tel" id="auth-phone" name="phone" required placeholder="Enter 10-digit mobile" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" value="9876543210">
+              <button type="button" class="auth-send-otp-btn" id="auth-send-otp-btn">Send OTP</button>
+            </div>
+          </label>
+
+          <div id="auth-otp-notice" class="auth-otp-notice">
+            <span class="otp-pulse-dot"></span>
+            <span id="auth-otp-notice-text">OTP sent to your number: <strong>1234</strong></span>
+          </div>
+
+          <label for="auth-otp">One-Time Password (OTP)
+            <input type="text" id="auth-otp" name="otp" required placeholder="Enter 4-digit OTP" maxlength="6" autocomplete="one-time-code" value="1234">
+          </label>
+
+          <button type="submit" class="auth-submit-btn" id="auth-submit-btn">Verify OTP & Unlock</button>
+        </form>
       </div>
     </div>
 
@@ -493,10 +508,29 @@ function setupShellEventListeners() {
     });
   }
 
-  const quickLoginBtn = document.querySelector('#quick-demo-login-btn');
-  if (quickLoginBtn) {
-    quickLoginBtn.addEventListener('click', () => {
-      executeLogin({ name: 'Alex Morgan', email: 'alex.morgan@example.com' });
+  // Auth Modal Listeners: Only Mobile Number and OTP
+  const sendOtpBtn = document.querySelector('#auth-send-otp-btn');
+  const otpNotice = document.querySelector('#auth-otp-notice');
+  const otpNoticeText = document.querySelector('#auth-otp-notice-text');
+  const phoneInput = document.querySelector('#auth-phone');
+  const otpInput = document.querySelector('#auth-otp');
+
+  if (sendOtpBtn) {
+    sendOtpBtn.addEventListener('click', () => {
+      const phone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
+      if (!phone || phone.length < 10) {
+        alert('Please enter a valid 10-digit mobile number.');
+        if (phoneInput) phoneInput.focus();
+        return;
+      }
+      if (otpNotice && otpNoticeText) {
+        otpNotice.hidden = false;
+        otpNoticeText.innerHTML = `OTP sent to +91 ${phone}: <strong>1234</strong>`;
+      }
+      if (otpInput) {
+        otpInput.value = '1234';
+        otpInput.focus();
+      }
     });
   }
 
@@ -504,9 +538,26 @@ function setupShellEventListeners() {
   if (authForm) {
     authForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.querySelector('#auth-email').value.trim() || 'alex.morgan@example.com';
-      const name = email.split('@')[0].replace(/[._-]/g, ' ') || 'Alex Member';
-      executeLogin({ name: name.charAt(0).toUpperCase() + name.slice(1), email });
+      const nameInput = document.querySelector('#auth-name');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const phone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
+      const otp = otpInput ? otpInput.value.trim() : '';
+      if (!name) {
+        alert('Please enter your name.');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      if (!phone || phone.length < 10) {
+        alert('Please enter a valid 10-digit mobile number.');
+        if (phoneInput) phoneInput.focus();
+        return;
+      }
+      if (!otp) {
+        alert('Please enter the OTP sent to your mobile.');
+        if (otpInput) otpInput.focus();
+        return;
+      }
+      executeLogin({ name, phone, mobile: phone });
     });
   }
 
@@ -562,11 +613,12 @@ function updateAuthUI() {
   const user = getAuthUser();
 
   if (user) {
-    const initial = (user.name || 'U').charAt(0).toUpperCase();
+    const displayName = (user.name && !user.name.startsWith('+91')) ? user.name : 'Alex Morgan';
+    const initial = displayName.charAt(0).toUpperCase();
     slot.innerHTML = `
-      <div class="user-profile-pill" title="Signed in as ${escapeHtml(user.email)}">
-        <span class="user-avatar-circle">${initial}</span>
-        <span>${escapeHtml(user.name.split(' ')[0])}</span>
+      <div class="user-profile-pill" title="Signed in as ${escapeHtml(displayName)}">
+        <span class="user-avatar-circle">${escapeHtml(initial)}</span>
+        <span>${escapeHtml(displayName)}</span>
         <button class="user-logout-btn" id="header-logout-btn" title="Sign out" type="button">✕</button>
       </div>
     `;
@@ -578,11 +630,8 @@ function updateAuthUI() {
       });
     }
   } else {
-    slot.innerHTML = `<button type="button" class="auth-btn" id="header-sign-in-btn">Sign in</button>`;
-    const loginBtn = slot.querySelector('#header-sign-in-btn');
-    if (loginBtn) {
-      loginBtn.addEventListener('click', () => openAuthModal());
-    }
+    // Requirement 1: remove the signin in the header
+    slot.innerHTML = '';
   }
 }
 
@@ -1024,7 +1073,9 @@ function setupListings() {
   function renderOptions() {
     const selectedCity = citySelect ? citySelect.value : '';
     const group = listings.filter(item => {
-      if (selectedCity && item.city !== selectedCity) return false;
+      if (selectedCity && selectedCity !== 'Bengaluru') {
+        if (item.city !== selectedCity && item.locality !== selectedCity) return false;
+      }
       if (intent !== 'all' && item.intent !== intent) return false;
       return true;
     });
@@ -1049,7 +1100,9 @@ function setupListings() {
 
     let found = listings.filter(item => {
       if (isSavedOnly && !savedIds.includes(item.id)) return false;
-      if (selectedCity && item.city !== selectedCity) return false;
+      if (selectedCity && selectedCity !== 'Bengaluru') {
+        if (item.city !== selectedCity && item.locality !== selectedCity) return false;
+      }
       if (intent !== 'all' && item.intent !== intent) return false;
       if (locality.value && item.locality !== locality.value) return false;
       if (type.value && item.type !== type.value) return false;
@@ -1438,24 +1491,21 @@ function setupChat() {
     addChatMessage(clean, 'user');
     input.value = '';
 
-    // Requirement: If user asks anything about any property, require login first!
+    // Requirement 3: If user asks anything about any property in chatbot, require Mobile & OTP sign in!
     const user = getAuthUser();
     if (!user) {
       pendingChatQuery = clean;
       const gateMsg = addChatMessage('', 'bot');
       gateMsg.innerHTML = `
         <div class="chat-auth-card">
-          <span class="chat-auth-badge">Authentication Required</span>
-          <h4 style="margin:0 0 4px; font-size:0.95rem; color:#fff;">Sign in to Inquire About Properties</h4>
+          <span class="chat-auth-badge">Mobile Verification Required</span>
+          <h4 style="margin:0 0 4px; font-size:0.95rem; color:#fff;">Sign In to Inquire About Properties</h4>
           <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 12px; line-height:1.4;">
-            To access property information, blueprints, and request official brochures, please sign in to your WONACRE account.
+            To access property blueprints, spatial specifications, and request official dossiers, please sign in with your mobile number and OTP.
           </p>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button type="button" class="button button-gold" style="padding:7px 14px; font-size:0.8rem;" id="chat-login-action-btn">
-              Sign In to Inquire →
-            </button>
-            <button type="button" class="button button-ghost-light" style="padding:7px 12px; font-size:0.78rem;" id="chat-demo-action-btn">
-              ⚡ Quick 1-Click Guest Unlock
+            <button type="button" class="button button-gold" style="padding:7px 16px; font-size:0.82rem;" id="chat-login-action-btn">
+              Sign In with Mobile & OTP →
             </button>
           </div>
         </div>
@@ -1463,9 +1513,6 @@ function setupChat() {
 
       gateMsg.querySelector('#chat-login-action-btn').addEventListener('click', () => {
         openAuthModal();
-      });
-      gateMsg.querySelector('#chat-demo-action-btn').addEventListener('click', () => {
-        executeLogin({ name: 'Alex Morgan', email: 'alex.morgan@example.com' });
       });
 
       gateMsg.scrollIntoView({ block: 'end', behavior: 'smooth' });

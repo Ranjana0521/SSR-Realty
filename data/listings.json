@@ -1,9 +1,9 @@
 [
   {
     "id": "linear-house-gachibowli",
-    "title": "The Linear House at Gachibowli",
-    "city": "Hyderabad",
-    "locality": "Gachibowli",
+    "title": "The Linear House at Koramangala",
+    "city": "Bengaluru",
+    "locality": "Koramangala",
     "intent": "buy",
     "type": "apartment",
     "status": "Ready to move",
@@ -20,7 +20,7 @@
       "assets/prop-floor-plan.jpg"
     ],
     "featured": true,
-    "summary": "Contemporary architectural haven featuring acoustic low-E glass, serene linear terraces, and quiet proximity to the financial district.",
+    "summary": "Contemporary architectural haven featuring acoustic low-E glass, serene linear terraces, and quiet proximity to the Koramangala tech hub.",
     "highlights": ["Acoustic Low-E glass", "Spacious terrace balcony", "East facing with open vistas", "2 covered basement parking spots"],
     "specs": {
       "facing": "East",
@@ -185,9 +185,9 @@
   },
   {
     "id": "mumbai-worli-skyline",
-    "title": "Worli Waterfront Suite",
-    "city": "Mumbai",
-    "locality": "Worli",
+    "title": "Hebbal Lakefront Skyline Suite",
+    "city": "Bengaluru",
+    "locality": "Hebbal",
     "intent": "buy",
     "type": "apartment",
     "status": "Ready to move",
@@ -204,13 +204,13 @@
       "assets/prop-floor-plan.jpg"
     ],
     "featured": true,
-    "summary": "Unrivalled Arabian Sea vistas paired with floor-to-ceiling glass architecture and private elevator vestibule.",
-    "highlights": ["Direct sea views", "Concierge reception", "Private elevator lobby", "Acoustic insulated glazing"],
+    "summary": "Unrivalled Hebbal Lake vistas paired with floor-to-ceiling glass architecture and private elevator vestibule.",
+    "highlights": ["Direct lake views", "Concierge reception", "Private elevator lobby", "Acoustic insulated glazing"],
     "specs": {
-      "facing": "West (Sea Facing)",
+      "facing": "North (Lake Facing)",
       "floor": "28th Floor",
       "possession": "Ready to move",
-      "rera": "P51900008432",
+      "rera": "PRM/KA/RERA/1251/309/PR/200114",
       "maintenance": "₹12,000 / month",
       "furnishing": "Designer Italian Kitchen"
     },
@@ -231,9 +231,9 @@
   },
   {
     "id": "gurgaon-golf-estate",
-    "title": "The Golf Reserve Pavilion",
-    "city": "Gurgaon",
-    "locality": "Golf Course Ext.",
+    "title": "The Golf Enclave Pavilion",
+    "city": "Bengaluru",
+    "locality": "Yelahanka",
     "intent": "buy",
     "type": "apartment",
     "status": "Ready to move",
@@ -251,12 +251,12 @@
     ],
     "featured": true,
     "summary": "Expansive luxury sanctuary overlooking pristine greens, complete with smart home automation and wraparound deck.",
-    "highlights": ["Golf course views", "Wraparound timber deck", "Smart automation", "Triple height clubhouse"],
+    "highlights": ["Golf enclave views", "Wraparound timber deck", "Smart automation", "Triple height clubhouse"],
     "specs": {
       "facing": "North-East",
       "floor": "16th Floor",
       "possession": "Ready to move",
-      "rera": "GGM/2021/48",
+      "rera": "PRM/KA/RERA/1251/310/PR/210518",
       "maintenance": "₹9,500 / month",
       "furnishing": "Semi-Furnished"
     },
