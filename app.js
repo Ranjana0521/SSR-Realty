@@ -250,16 +250,10 @@ function renderShell() {
 
   // Chat Panel Root
   document.querySelector('#chat-root').innerHTML = `
-    <button id="chat-launcher" class="chat-launcher" type="button" aria-label="Open WONACRE AI Spatial Chat" aria-expanded="false">
-      <img src="assets/bot-face.png" alt="Chat Bot" class="launcher-sticker-bot">
-    </button>
+    <button id="chat-launcher" class="chat-launcher" type="button" aria-label="Open WONACRE AI Spatial Chat" aria-expanded="false" hidden style="display: none;"></button>
     <div id="chat-backdrop" class="chat-backdrop" hidden></div>
     <section id="chat-panel" class="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chat-title" hidden>
       <header class="chat-head">
-        <div class="chat-avatar">
-          <img src="assets/bot-face.png" alt="WONACRE Spatial AI" class="chat-avatar-img">
-          <span class="avatar-online-dot"></span>
-        </div>
         <div class="chat-head-titles">
           <strong id="chat-title">WONACRE Spatial AI</strong>
           <span id="chat-mode">Bengaluru Metropolis Spatial Model</span>

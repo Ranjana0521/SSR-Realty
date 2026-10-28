@@ -2582,6 +2582,7 @@ body.chat-modal-open {
 }
 
 .chat-launcher {
+  display: none !important;
   position: fixed;
   bottom: 24px;
   right: 24px;
@@ -2601,6 +2602,7 @@ body.chat-modal-open {
 }
 
 .launcher-sticker-bot {
+  display: none !important;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -2647,6 +2649,7 @@ body.chat-modal-open {
 }
 
 .chat-avatar {
+  display: none !important;
   position: relative;
   width: 42px;
   height: 42px;
