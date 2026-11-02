@@ -141,11 +141,13 @@ function renderShell() {
   document.querySelector('#site-header').innerHTML = `
     <header class="site-header">
       <div class="container header-inner">
-        <!-- Brand Logo: WONACRE -->
-        <a class="brand" href="index.html" aria-label="WONACRE">
-          <span class="brand-symbol">W</span>
+        <!-- Brand Logo: WONACRE AI -->
+        <a class="brand" href="index.html" aria-label="Wonacre AI">
+          <span class="brand-symbol">
+            <img src="assets/wonacre-logo-mark.png" alt="Wonacre AI Logo" class="brand-logo-img">
+          </span>
           <div class="brand-text">
-            <span class="brand-name">WONACRE</span>
+            <img src="assets/wonacre-wordmark-gold.png" alt="WONACRE AI" class="brand-wordmark-img">
           </div>
         </a>
 
@@ -187,7 +189,7 @@ function renderShell() {
 
           <!-- Consult AI CTA Button -->
           <button type="button" class="consult-ai-btn" data-open-chat>
-            Consult AI <span>✦</span>
+            Consult Wonacre AI <span>✦</span>
           </button>
 
           <!-- Mobile Hamburger -->
@@ -205,10 +207,12 @@ function renderShell() {
       <div class="container">
         <div class="footer-top">
           <div>
-            <a class="brand" href="index.html">
-              <span class="brand-symbol">W</span>
+            <a class="brand" href="index.html" aria-label="Wonacre AI">
+              <span class="brand-symbol">
+                <img src="assets/wonacre-logo-mark.png" alt="Wonacre AI Logo" class="brand-logo-img">
+              </span>
               <div class="brand-text">
-                <span class="brand-name">WONACRE</span>
+                <img src="assets/wonacre-wordmark-gold.png" alt="WONACRE AI" class="brand-wordmark-img">
               </div>
             </a>
             <p style="color: var(--ink-secondary); margin-top: 14px; max-width: 380px;">
@@ -234,14 +238,14 @@ function renderShell() {
             </div>
             <div>
               <strong>Connect</strong>
-              <a href="about.html">About WONACRE</a>
+              <a href="about.html">About Wonacre AI</a>
               <a href="contact.html">Schedule Site Visit</a>
               <button type="button" data-open-chat>Consult AI Spatial Model</button>
             </div>
           </div>
         </div>
         <div class="footer-bottom">
-          <span>© 2026 WONACRE · All rights reserved</span>
+          <span>© 2026 Wonacre AI · All rights reserved</span>
           <span>Property blueprints and dossiers protected for verified users.</span>
         </div>
       </div>
@@ -254,9 +258,12 @@ function renderShell() {
     <div id="chat-backdrop" class="chat-backdrop" hidden></div>
     <section id="chat-panel" class="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chat-title" hidden>
       <header class="chat-head">
-        <div class="chat-head-titles">
-          <strong id="chat-title">WONACRE Spatial AI</strong>
-          <span id="chat-mode">Bengaluru Metropolis Spatial Model</span>
+        <div class="chat-head-brand">
+          <img src="assets/wonacre-logo-mark.png" alt="Wonacre AI" class="chat-head-logo">
+          <div class="chat-head-titles">
+            <img src="assets/wonacre-wordmark-gold.png" alt="WONACRE AI" class="chat-wordmark-img">
+            <span id="chat-mode">Bengaluru Metropolis Spatial Model</span>
+          </div>
         </div>
         <div class="chat-head-tools">
           <button id="chat-expand-toggle" type="button" class="chat-head-btn" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">⛶</button>
