@@ -187,9 +187,9 @@ function renderShell() {
           <!-- Auth Profile Slot (Sign in button removed from header) -->
           <div id="header-auth-slot"></div>
 
-          <!-- Consult AI CTA Button -->
+          <!-- Wonacre AI CTA Button -->
           <button type="button" class="consult-ai-btn" data-open-chat>
-            Consult Wonacre AI <span>✦</span>
+            Wonacre AI <span>✦</span>
           </button>
 
           <!-- Mobile Hamburger -->
@@ -632,12 +632,15 @@ function updateAuthUI() {
   const user = getAuthUser();
 
   if (user) {
-    const displayName = (user.name && user.name.trim() && !user.name.startsWith('+91')) ? user.name.trim() : 'Alex Morgan';
-    const initial = displayName.charAt(0).toUpperCase();
+    const rawName = (user.name && user.name.trim() && !user.name.startsWith('+91')) ? user.name.trim() : 'Guest';
+    // Extract only the first name (e.g. "Ranjana" from "Ranjana Hegde")
+    const rawFirst = rawName.split(/\s+/)[0];
+    const firstName = rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1);
+    const initial = firstName.charAt(0).toUpperCase();
     slot.innerHTML = `
-      <div class="user-profile-pill" title="Signed in as ${escapeHtml(displayName)}">
+      <div class="user-profile-pill" title="Signed in as ${escapeHtml(rawName)}">
         <span class="user-avatar-circle">${escapeHtml(initial)}</span>
-        <span>Hello! ${escapeHtml(displayName)}</span>
+        <span>Hello! ${escapeHtml(firstName)}</span>
         <button class="user-logout-btn" id="header-logout-btn" title="Sign out" type="button" aria-label="Sign out">✕</button>
       </div>
     `;
